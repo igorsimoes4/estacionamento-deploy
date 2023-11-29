@@ -9,7 +9,7 @@
     "routes": [
         {
             "src": "/(.*)",
-            "dest": "/artisan"
+            "dest": "/public/index.php"
         }
     ],
     "env": {
