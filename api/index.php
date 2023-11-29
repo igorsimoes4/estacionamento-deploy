@@ -1,54 +1,54 @@
 <?php
 
-require_once __DIR__ . "/../public/index.php";
 
-// define('LARAVEL_START', microtime(true));
 
-// /*
-// |--------------------------------------------------------------------------
-// | Check If The Application Is Under Maintenance
-// |--------------------------------------------------------------------------
-// |
-// | If the application is in maintenance / demo mode via the "down" command
-// | we will load this file so that any pre-rendered content can be shown
-// | instead of starting the framework, which could cause an exception.
-// |
-// */
+define('LARAVEL_START', microtime(true));
 
-// if (file_exists($maintenance = __DIR__ . "/../storage/framework/maintenance.php")) {
-//     require_once $maintenance;
-// }
+/*
+|--------------------------------------------------------------------------
+| Check If The Application Is Under Maintenance
+|--------------------------------------------------------------------------
+|
+| If the application is in maintenance / demo mode via the "down" command
+| we will load this file so that any pre-rendered content can be shown
+| instead of starting the framework, which could cause an exception.
+|
+*/
 
-// /*
-// |--------------------------------------------------------------------------
-// | Register The Auto Loader
-// |--------------------------------------------------------------------------
-// |
-// | Composer provides a convenient, automatically generated class loader for
-// | this application. We just need to utilize it! We'll simply require it
-// | into the script here so we don't need to manually load our classes.
-// |
-// */
+if (file_exists($maintenance = __DIR__ . "/../storage/framework/maintenance.php")) {
+    require_once $maintenance;
+}
 
-// require_once __DIR__ . "/../vendor/autoload.php";
+/*
+|--------------------------------------------------------------------------
+| Register The Auto Loader
+|--------------------------------------------------------------------------
+|
+| Composer provides a convenient, automatically generated class loader for
+| this application. We just need to utilize it! We'll simply require it
+| into the script here so we don't need to manually load our classes.
+|
+*/
 
-// /*
-// |--------------------------------------------------------------------------
-// | Run The Application
-// |--------------------------------------------------------------------------
-// |
-// | Once we have the application, we can handle the incoming request using
-// | the application's HTTP kernel. Then, we will send the response back
-// | to this client's browser, allowing them to enjoy our application.
-// |
-// */
+require_once __DIR__ . "/../vendor/autoload.php";
 
-// $app = require_once __DIR__ . "/../bootstrap/app.php";
+/*
+|--------------------------------------------------------------------------
+| Run The Application
+|--------------------------------------------------------------------------
+|
+| Once we have the application, we can handle the incoming request using
+| the application's HTTP kernel. Then, we will send the response back
+| to this client's browser, allowing them to enjoy our application.
+|
+*/
 
-// $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+$app = require_once __DIR__ . "/../bootstrap/app.php";
 
-// $response = $kernel->handle(
-//     $request = Illuminate\Http\Request::capture()
-// )->send();
+$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
 
-// $kernel->terminate($request, $response);
+$response = $kernel->handle(
+    $request = Illuminate\Http\Request::capture()
+)->send();
+
+$kernel->terminate($request, $response);
