@@ -17,7 +17,7 @@
         "APP_DEBUG": "false",
         "APP_URL": "https://yourproductionurl.com",
         "APP_NAME": "Estacionamento",
-        "APP_KEY": "base64: 1+A89Lxe3PCycBk+tEdGTJTxvx/7RWpZN7OpCHRe9Os=",
+        "APP_KEY": "base64:1+A89Lxe3PCycBk+tEdGTJTxvx/7RWpZN7OpCHRe9Os=",
         "DB_HOST": "sql5.freesqldatabase.com",
         "DB_PORT": "3306",
         "DB_DATABASE": "sql5665978",
