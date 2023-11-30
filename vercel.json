@@ -12,11 +12,11 @@
             "dest": "/public/build/"
         },
         {
-            "src": "/vendor/(.*)",
+            "src": "public/vendor/(.*)",
             "dest": "/public/vendor/"
         },
         {
-            "src": "/vendor/adminlte/dist/(.*)",
+            "src": "public/vendor/adminlte/dist/(.*)",
             "dest": "/public/vendor/adminlte/dist/"
         },
         {
