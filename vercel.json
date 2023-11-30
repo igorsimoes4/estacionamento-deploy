@@ -35,7 +35,7 @@
     "env": {
         "APP_ENV": "production",
         "APP_DEBUG": "true",
-        "APP_URL": "https://yourproductionurl.com",
+        "APP_URL": "https://estacionamento-deploy.vercel.app/",
         "APP_NAME": "Estacionamento",
         "APP_KEY": "base64:1+A89Lxe3PCycBk+tEdGTJTxvx/7RWpZN7OpCHRe9Os=",
         "DB_HOST": "sql5.freesqldatabase.com",
