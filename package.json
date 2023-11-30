@@ -1,7 +1,7 @@
 {
     "private": true,
     "scripts": {
-        "dev": "vite --host estacionamento-deploy.vercel.app",
+        "dev": "vite --host locallhost",
         "build": "vite build"
     },
     "devDependencies": {
