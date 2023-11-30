@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CarsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::resource('/cars', CarsController::class);
+Route::get('/cars', [CarsController::class, 'index']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
