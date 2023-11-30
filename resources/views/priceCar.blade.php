@@ -1,4 +1,15 @@
 @extends('adminlte::page')
+<script src="/public/js/jquery.min.js"></script>
+<script src="/public/vendor/jquery/jquery.js"></script>
+<script src="/public/vendor/jquery/jquery.min.js"></script>
+<script src="/public/vendor/adminlte/dist/js/adminlte.min.js"></script>
+<script src="/public/vendor/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+<script src="/public/vendor/popper/popper.min.js"></script>
+<script src="/public/vendor/popper/popper-utils.min.js"></script>
+<script src="/public/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<link rel="stylesheet" href="/public/vendor/adminlte/dist/css/adminlte.css" />
+<link rel="stylesheet" href="/public/vendor/fontawesome-free/css/all.min.css" />
 
 @section('plugins.Chartjs', true)
 
