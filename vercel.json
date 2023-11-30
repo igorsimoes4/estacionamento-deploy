@@ -13,6 +13,18 @@
     ],
     "routes": [
         {
+            "src": "/public/vendor/popper/esm/(.*)",
+            "dest": "/public/vendor/popper/esm/"
+        },
+        {
+            "src": "/public/vendor/popper/(.*)",
+            "dest": "/public/vendor/popper/"
+        },
+        {
+            "src": "/public/vendor/popper/umd/(.*)",
+            "dest": "/public/vendor/popper/umd/"
+        },
+        {
             "src": "/build/(.*)",
             "dest": "/public/build/"
         },
