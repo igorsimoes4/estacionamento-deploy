@@ -325,10 +325,10 @@
                                 <th>R$ @php echo number_format($car->price, 2, ',', '')  @endphp </th>
                                 <th width="300">
                                     <div class="row">
-                                        <a style="margin-right: 5px;" class="btn btn-sm btn-warning modal-btn" data-id="{{ $car->id }}" data-toggle="modal" data-target="#myModal">
+                                        <a style="margin-right: 5px; height: 30px;" class="btn btn-sm btn-warning modal-btn" data-id="{{ $car->id }}" data-toggle="modal" data-target="#myModal">
                                             <i style="margin-right: 5px; font-size:13px;" class="fas fa-solid fa-eye"></i> Visualizar
                                         </a>
-                                        <a style="margin-right: 5px;" id="teste" class="btn btn-sm btn-danger" href="{{route('cars.edit', ['car' => $car->id])}}"><i style="margin-right: 5px; font-size:13px;" class="fas fa-solid fa-edit"></i> Finalizar</a>
+                                        <a style="margin-right: 5px; height: 30px;" id="teste" class="btn btn-sm btn-danger" href="{{route('cars.edit', ['car' => $car->id])}}"><i style="margin-right: 5px; font-size:13px;" class="fas fa-solid fa-edit"></i> Finalizar</a>
                                         <x-print.form :car="$car" :entrada="$entrada" />
                                     </div>
                                 </th>
