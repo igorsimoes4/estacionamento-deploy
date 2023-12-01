@@ -1,16 +1,17 @@
 @extends('adminlte::page')
 {{-- <script src="{{ asset('js/chart.min.js') }}"></script> --}}
-<script src="/public/js/jquery.min.js"></script>
-<script src="/public/vendor/jquery/jquery.js"></script>
-<script src="/public/vendor/jquery/jquery.min.js"></script>
-<script src="/public/vendor/adminlte/dist/js/adminlte.min.js"></script>
-<script src="/public/vendor/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
-<script src="/public/vendor/popper/popper.min.js"></script>
-<script src="/public/vendor/popper/popper-utils.min.js"></script>
-<script src="/public/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.css') }}" />
+    <link rel="stylesheet" href="{{ asset('fontawesome-free/css/all.min.css') }}" />
+@endpush
 
-<link rel="stylesheet" href="/public/vendor/adminlte/dist/css/adminlte.css" />
-<link rel="stylesheet" href="/public/vendor/fontawesome-free/css/all.min.css" />
+@push('scripts')
+    <script src="{{ asset('js/jquery.min.js') }}"></script>
+    <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
+    <script src="{{ asset('overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
+    <script src="{{ asset('popper/popper.min.js') }}"></script>
+    <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+@endpush
 {{-- <script src="{{ asset('js/jquery.min.js') }}"></script> --}}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 
