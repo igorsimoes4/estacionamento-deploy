@@ -63,7 +63,7 @@ return [
     |
     */
 
-    'logo' => '<b>Estacionamento</b> Rede <br> America',
+    'logo' => '<b>Estacionamento</b>',
     'logo_img' => null, //'vendor/adminlte/dist/img/AdminLTELogo.png',
     'logo_img_class' => null, //'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
