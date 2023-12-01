@@ -5,12 +5,10 @@
         {
             "src": "/public/index.php",
             "use": "vercel-php@0.6.0"
-        }
-    ],
-    "routes": [
+        },
         {
-            "src": "/public/(.*)",
-            "dest": "/public/"
+            "src": "/public/**",
+            "use": "@vercel/static"
         }
     ],
     "env": {
