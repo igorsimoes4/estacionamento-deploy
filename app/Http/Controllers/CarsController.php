@@ -130,8 +130,8 @@ class CarsController extends Controller
         }
 
         $data['cars'] = $cars;
-        // return view('cars', $data);
-        return response()->json($data);
+        return view('cars', $data);
+        // return response()->json($data);
     }
 
     public function search(Request $req) {

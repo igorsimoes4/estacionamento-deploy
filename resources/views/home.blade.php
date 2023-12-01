@@ -1,20 +1,19 @@
 @extends('adminlte::page')
 {{-- <script src="{{ asset('js/chart.min.js') }}"></script> --}}
 @push('styles')
-
 @endpush
 
 @push('scripts')
-
 @endpush
 {{-- <script src="{{ asset('js/jquery.min.js') }}"></script> --}}
 <script src="https://estacionamento-deploy.vercel.app/public/js/jquery.min.js"></script>
-    <script src="https://estacionamento-deploy.vercel.app/public/adminlte/dist/js/adminlte.min.js"></script>
-    <script src="https://estacionamento-deploy.vercel.app/public/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
-    <script src="https://estacionamento-deploy.vercel.app/public/popper/popper.min.js"></script>
-    <script src="https://estacionamento-deploy.vercel.app/public/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://estacionamento-deploy.vercel.app/public/adminlte/dist/css/adminlte.css" />
-    <link rel="stylesheet" href="https://estacionamento-deploy.vercel.app/public/fontawesome-free/css/all.min.css" />
+<script src="https://estacionamento-deploy.vercel.app/public/adminlte/dist/js/adminlte.min.js"></script>
+<script src="https://estacionamento-deploy.vercel.app/public/overlayScrollbars/js/jquery.overlayScrollbars.min.js">
+</script>
+<script src="https://estacionamento-deploy.vercel.app/public/popper/popper.min.js"></script>
+<script src="https://estacionamento-deploy.vercel.app/public/bootstrap/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://estacionamento-deploy.vercel.app/public/adminlte/dist/css/adminlte.css" />
+<link rel="stylesheet" href="https://estacionamento-deploy.vercel.app/public/fontawesome-free/css/all.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 
 {{-- @section('plugins.Chartjs', true)
@@ -32,7 +31,7 @@
                 <div class="col-md">
                     <div class="small-box bg-warning">
                         <div class="inner">
-                            <h3>{{$data['car_parking']}}</h3>
+                            <h3>{{ $data['car_parking'] }}</h3>
                             <p>Carros Estacionados</p>
                         </div>
                         <div class="icon"><i class="fa fa-fw fa-car"></i></div>
@@ -41,7 +40,7 @@
                 <div class="col-md">
                     <div class="small-box bg-warning">
                         <div class="inner">
-                            <h3>{{$data['moto_parking']}}</h3>
+                            <h3>{{ $data['moto_parking'] }}</h3>
                             <p>Motos Estacionadas</p>
                         </div>
                         <div class="icon"><i class="fa fa-fw fa-motorcycle"></i></div>
@@ -50,7 +49,7 @@
                 <div class="col-md">
                     <div class="small-box bg-warning">
                         <div class="inner">
-                            <h3>{{$data['caminhonete_parking']}}</h3>
+                            <h3>{{ $data['caminhonete_parking'] }}</h3>
                             <p>Caminhonetes Estacionadas</p>
                         </div>
                         <div class="icon"><i class="fa fa-fw fa-car"></i></div>
@@ -73,7 +72,8 @@
                                         labels: {!! json_encode($data['CarLabels']) !!},
                                         datasets: [{
                                             data: {!! json_encode($data['CarValues']) !!},
-                                            backgroundColor: getRandomColors({{ count($data['CarLabels']) }}) // Função para gerar cores aleatórias
+                                            backgroundColor: getRandomColors(
+                                                {{ count($data['CarLabels']) }}) // Função para gerar cores aleatórias
                                         }],
                                     },
                                     options: {
@@ -88,7 +88,7 @@
                                 function getRandomColors(count) {
                                     var colors = [];
                                     for (var i = 0; i < count; i++) {
-                                        colors.push('#' + Math.floor(Math.random()*16777215).toString(16));
+                                        colors.push('#' + Math.floor(Math.random() * 16777215).toString(16));
                                     }
                                     return colors;
                                 }
