@@ -65,7 +65,7 @@
                         <div class="card-body">
                             <canvas id="carPie" width="400" height="300"></canvas>
                             <script>
-                                let ctx = document.getElementById('carPie').getContext('2d');
+                                var ctx = document.getElementById('carPie').getContext('2d');
                                 var carPie = new Chart(ctx, {
                                     type: 'pie',
                                     data: {
