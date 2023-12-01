@@ -3,12 +3,8 @@
     "framework": null,
     "builds": [
         {
-            "src": "/public/index.php",
+            "src": "/public/**",
             "use": "vercel-php@0.6.0"
-        },
-        {
-            "src": "/**",
-            "use": "@vercel/static"
         }
     ],
     "routes": [
