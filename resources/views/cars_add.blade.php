@@ -1,16 +1,11 @@
 @extends('adminlte::page')
-@push('styles')
-    <link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.css') }}" />
-    <link rel="stylesheet" href="{{ asset('fontawesome-free/css/all.min.css') }}" />
-@endpush
-
-@push('scripts')
-    <script src="{{ asset('js/jquery.min.js') }}"></script>
+<script src="{{ asset('js/jquery.min.js') }}"></script>
     <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
     <script src="{{ asset('overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
     <script src="{{ asset('popper/popper.min.js') }}"></script>
     <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-@endpush
+<link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.css') }}" />
+    <link rel="stylesheet" href="{{ asset('fontawesome-free/css/all.min.css') }}" />
 
 @section('title', 'Nova Página')
 

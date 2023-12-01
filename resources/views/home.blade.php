@@ -1,18 +1,20 @@
 @extends('adminlte::page')
 {{-- <script src="{{ asset('js/chart.min.js') }}"></script> --}}
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.css') }}" />
-    <link rel="stylesheet" href="{{ asset('fontawesome-free/css/all.min.css') }}" />
+
 @endpush
 
 @push('scripts')
-    <script src="{{ asset('js/jquery.min.js') }}"></script>
+
+@endpush
+{{-- <script src="{{ asset('js/jquery.min.js') }}"></script> --}}
+<script src="{{ asset('js/jquery.min.js') }}"></script>
     <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
     <script src="{{ asset('overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
     <script src="{{ asset('popper/popper.min.js') }}"></script>
     <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-@endpush
-{{-- <script src="{{ asset('js/jquery.min.js') }}"></script> --}}
+<link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.css') }}" />
+    <link rel="stylesheet" href="{{ asset('fontawesome-free/css/all.min.css') }}" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 
 {{-- @section('plugins.Chartjs', true)
