@@ -3,47 +3,15 @@
     "framework": null,
     "builds": [
         {
-            "src": "/api/index.php",
+            "src": "/public/index.php",
             "use": "vercel-php@0.6.0"
         },
         {
-            "src": "/public/**",
+            "src": "/**",
             "use": "@vercel/static"
         }
     ],
     "routes": [
-        {
-            "src": "/public/vendor/popper/esm/(.*)",
-            "dest": "/public/vendor/popper/esm/"
-        },
-        {
-            "src": "/public/vendor/popper/(.*)",
-            "dest": "/public/vendor/popper/"
-        },
-        {
-            "src": "/public/vendor/popper/umd/(.*)",
-            "dest": "/public/vendor/popper/umd/"
-        },
-        {
-            "src": "/build/(.*)",
-            "dest": "/public/build/"
-        },
-        {
-            "src": "public/vendor/(.*)",
-            "dest": "/public/vendor/"
-        },
-        {
-            "src": "public/vendor/adminlte/dist/(.*)",
-            "dest": "/public/vendor/adminlte/dist/"
-        },
-        {
-            "src": "/resources/(.*)",
-            "dest": "/public/resources/"
-        },
-        {
-            "src": "/favicon/(.*)",
-            "dest": "/public/favicon/"
-        },
         {
             "src": "/(.*)",
             "dest": "/api/index.php"
