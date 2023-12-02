@@ -20,7 +20,7 @@ class EstacionamentoController extends Controller
         $cars = Cars::paginate(10);
 
         // Monto as Informações para o grafico do Dashboard de 30 dias
-        $interval = intval(30);
+        $interval = intval(120);
         $dateInterval = now()->subDays($interval)->toDateTimeString();
         $carPie = Cars::selectRaw('tipo_car, count(tipo_car) as c')
             ->where('created_at', '>=', $dateInterval)

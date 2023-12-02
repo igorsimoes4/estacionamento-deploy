@@ -16,9 +16,9 @@
 <link rel="stylesheet" href="https://estacionamento-deploy.vercel.app/public/fontawesome-free/css/all.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 
-{{-- @section('plugins.Chartjs', true)
+@section('plugins.Chartjs', true)
 
-@section('plugins.Chartjs', true) --}}
+@section('plugins.Chartjs', true)
 
 @section('title', 'Painel | Home')
 
