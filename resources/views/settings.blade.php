@@ -11,13 +11,14 @@
     <script src="{{ asset('popper/popper.min.js') }}"></script>
     <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 @endpush
-<script src="https://estacionamento-deploy.vercel.app/public/js/jquery.min.js"></script>
-    <script src="https://estacionamento-deploy.vercel.app/public/adminlte/dist/js/adminlte.min.js"></script>
-    <script src="https://estacionamento-deploy.vercel.app/public/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
-    <script src="https://estacionamento-deploy.vercel.app/public/popper/popper.min.js"></script>
-    <script src="https://estacionamento-deploy.vercel.app/public/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://estacionamento-deploy.vercel.app/public/adminlte/dist/css/adminlte.css" />
-    <link rel="stylesheet" href="https://estacionamento-deploy.vercel.app/public/fontawesome-free/css/all.min.css" />
+<script src="{{asset('js/jquery.min.js')}}"></script>
+<script src="{{asset('adminlte/dist/js/adminlte.min.js')}}"></script>
+<script src="{{asset('overlayScrollbars/js/jquery.overlayScrollbars.min.js')}}">
+</script>
+<script src="{{asset('popper/popper.min.js')}}"></script>
+<script src="{{asset('bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+<link rel="stylesheet" href="{{asset('adminlte/dist/css/adminlte.css')}}" />
+<link rel="stylesheet" href="{{asset('fontawesome-free/css/all.min.css')}}" />
 
 @section('plugins.Chartjs', true)
 
@@ -110,7 +111,7 @@
             </div>
         @endif
         <div class="card-body">
-            <x-settings.form :estacionamento="$estacionamento" :route='$route' />
+            <x-settings.form :estacionamentos='$estacionamento' :route='$route' />
         </div>
     </div>
 @endsection

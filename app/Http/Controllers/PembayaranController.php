@@ -7,6 +7,7 @@ use App\Models\Settings;
 use App\Pembayaran;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
 use Mike42\Escpos;
 use Mike42\Escpos\Printer;
@@ -24,7 +25,7 @@ class PembayaranController extends Controller
             $printer = new Printer($connector);
             $printer -> setJustification(Printer::JUSTIFY_CENTER);
             $printer -> text("------------------------------------------\n");
-            $printer -> text($estacionamento->nome_da_Empresa."\n");
+            $printer -> text($estacionamento->nome_da_empresa."\n");
             $printer -> text($estacionamento->endereco."\n");
             $printer -> text($estacionamento->cnpj_Cpf_da_empresa."\n");
             $printer -> text($estacionamento->telefone_da_empresa."\n");
@@ -45,6 +46,7 @@ class PembayaranController extends Controller
             $printer -> close();
         } catch(Exception $e) {
             echo "Não foi possível imprimir nesta impressora: " . $e -> getMessage() . "\n";
+            Log::error( "Não foi possível imprimir nesta impressora: " . $e -> getMessage());
         }
     }
 }

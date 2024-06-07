@@ -11,14 +11,14 @@ class Settings extends Model
     protected $table = 'settings';
 
     protected $fillable = [
-            'nome_da_Empresa',
+            'nome_da_empresa',
             'endereco',
             'cidade',
             'estado',
             'cep',
             'telefone_da_empresa',
             'email_da_empresa',
-            'numero_de_registro_da_Empresa',
+            'numero_de_registro_da_empresa',
             'cnpj_Cpf_da_empresa',
             'descricao_da_empresa',
             'coordenadas_gps',

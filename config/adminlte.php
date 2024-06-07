@@ -1,5 +1,6 @@
 <?php
 
+
 return [
 
     /*
@@ -14,7 +15,8 @@ return [
     |
     */
 
-    'title' => 'Estacionamento',
+    'title' => '',
+    'title_class' => 'break-word',
     'title_prefix' => '',
     'title_postfix' => '',
 
@@ -63,9 +65,9 @@ return [
     |
     */
 
-    'logo' => '<b>Estacionamento</b>',
-    'logo_img' => null, //'vendor/adminlte/dist/img/AdminLTELogo.png',
-    'logo_img_class' => null, //'brand-image img-circle elevation-3',
+    'logo' => '<span class="break-word">' . config('adminlte.logo', 'Estacionamento') . '</span>',
+    'logo_img' => config('adminlte.logo_img', 'vendor/adminlte/dist/img/AdminLTELogo.png'), //'vendor/adminlte/dist/img/AdminLTELogo.png',
+    'logo_img_class' => 'brand-image img-circle elevation-3 text-center',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
     'logo_img_alt' => null, //'Admin Logo',
@@ -84,9 +86,9 @@ return [
     */
 
     'auth_logo' => [
-        'enabled' => false,
+        'enabled' => true,
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
+            'path' => config('adminlte.logo_img', 'vendor/adminlte/dist/img/AdminLTELogo.png'),
             'alt' => 'Auth Logo',
             'class' => '',
             'width' => 50,
@@ -107,9 +109,9 @@ return [
     */
 
     'preloader' => [
-        'enabled' => false,
+        'enabled' => true,
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
+            'path' => config('adminlte.logo_img', 'vendor/adminlte/dist/img/AdminLTELogo.png'),
             'alt' => 'AdminLTE Preloader Image',
             'effect' => 'animation__shake',
             'width' => 60,
@@ -254,9 +256,9 @@ return [
 
     'use_route_url' => false,
     'dashboard_url' => 'painel',
-    'logout_url' => 'painel/logout',
-    'login_url' => 'painel/login',
-    'register_url' => 'painel/register',
+    'logout_url' => 'logout',
+    'login_url' => 'login',
+    'register_url' => 'register',
     'password_reset_url' => 'password/reset',
     'password_email_url' => 'password/email',
     'profile_url' => false,
@@ -316,6 +318,10 @@ return [
             'icon'        => 'fas fa-fw fa-info',
         ],
         [
+            'header' => 'Preços'
+
+        ],
+        [
             'text'        => 'Preços Carros',
             'url'         => 'painel/settings/price-car',
             'icon'        => 'fas fa-fw fa-cash-register',
@@ -330,6 +336,24 @@ return [
             'text'        => 'Preços Caminhonetes',
             'url'         => 'painel/settings/price-truck',
             'icon'        => 'fas fa-fw fa-cash-register',
+        ],
+        [
+            'header' => 'Relatórios',
+        ],
+        [
+            'text'        => 'Carros no Mês',
+            'url'         => 'painel/car-mounth',
+            'icon'        => 'fa fa-fw fa-car',
+        ],
+        [
+            'text'        => 'Motos no Mês',
+            'url'         => 'painel/motorcycle-mounth',
+            'icon'        => 'fa fa-fw fa-motorcycle',
+        ],
+        [
+            'text'        => 'Caminhonetes no Mês',
+            'url'         => 'painel/truck-mounth',
+            'icon'        => 'fa fa-fw fa-car',
         ],
     ],
 

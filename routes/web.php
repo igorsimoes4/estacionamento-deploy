@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CarsController;
+use App\Http\Controllers\Controller;
 use App\Http\Controllers\EstacionamentoController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\SearchController;
@@ -23,107 +25,114 @@ use Illuminate\Support\Facades\Route;
 | Rota Principal do Projeto
 |--------------------------------------------------------------------------
 */
+
 Route::get('/', function () {
-    return redirect('painel');
+    return redirect(route('login'));
 });
 
+Route::get('login', function () {return view('login');})->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/register', [AuthController::class, 'register'])->name('register');
+Route::post('/refresh', [AuthController::class, 'refresh'])->name('refresh');
 
-/*
-|--------------------------------------------------------------------------
-| Rota Painel Administrativo
-|--------------------------------------------------------------------------
-*/
-Route::prefix('painel')->group(function(){
-/*
+Route::middleware(['auth.cookie'])->group(function () {
+    /*
+    |--------------------------------------------------------------------------
+    | Rota Painel Administrativo
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('painel')->group(function () {
+        /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Dashboard
 |--------------------------------------------------------------------------
 */
-    Route::get('/', [EstacionamentoController::class, 'index'])->name('home');
+        Route::get('/', [EstacionamentoController::class, 'index'])->name('home');
 
-/*
+        /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Carros ( Cadastro, Edição e Finalizar )
 |--------------------------------------------------------------------------
 */
-    Route::resource('/cars', CarsController::class);
+        Route::resource('/cars', CarsController::class);
 
-/*
+        /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Visualizar o carro com Modal
 |--------------------------------------------------------------------------
 */
-    Route::get('/cars/showmodal/{car}', [CarsController::class, 'showModal'])->name('cars.modal');
+        Route::get('/cars/showmodal/{car}', [CarsController::class, 'showModal'])->name('cars.modal');
 
-/*
+        /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Impressão comprovante Carro estacionado
 |--------------------------------------------------------------------------
 */
-    Route::post('/pembayaran/print', [PembayaranController::class, 'print'])->name('pembayaran.print');
+        Route::post('/pembayaran/print', [PembayaranController::class, 'print'])->name('pembayaran.print');
 
-/*
+        /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Informações Principais do Estacionamento
 |-------------------------------------------------------------------------
 */
-    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+        Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
 
-    /*
+        /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Edição de Informações do Estacionamento
 |--------------------------------------------------------------------------
 */
-    Route::post('/settings/info', [SettingsController::class, 'editSettings'])->name('editSettings');
+        Route::post('/settings/info', [SettingsController::class, 'editSettings'])->name('editSettings');
 
-/*
+        /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Preço para os Carros
 |--------------------------------------------------------------------------
 */
-    Route::get('/settings/price-car', [SettingsController::class, 'priceCar'])->name('priceCar');
+        Route::get('/settings/price-car', [SettingsController::class, 'priceCar'])->name('priceCar');
 
-/*
+        /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Edição de Preço para Carros
 |--------------------------------------------------------------------------
 */
-    Route::post('/settings/price-car/edit', [SettingsController::class, 'editPriceCar'])->name('editPriceCar');
+        Route::post('/settings/price-car/edit', [SettingsController::class, 'editPriceCar'])->name('editPriceCar');
 
-/*
+        /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Preço para Motos
 |--------------------------------------------------------------------------
 */
-    Route::get('/settings/price-motorcycle', [SettingsController::class, 'priceMotorcycle'])->name('priceMotorcycle');
+        Route::get('/settings/price-motorcycle', [SettingsController::class, 'priceMotorcycle'])->name('priceMotorcycle');
 
-/*
+        /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Edição de Preço para Motos
 |--------------------------------------------------------------------------
 */
-    Route::post('/settings/price-motorcycle/edit', [SettingsController::class, 'editPriceMotorcycle'])->name('editPriceMotorcycle');
+        Route::post('/settings/price-motorcycle/edit', [SettingsController::class, 'editPriceMotorcycle'])->name('editPriceMotorcycle');
 
-/*
+        /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Preço para Caminhonetes
 |--------------------------------------------------------------------------
 */
-    Route::get('/settings/price-truck', [SettingsController::class, 'priceTruck'])->name('priceTruck');
+        Route::get('/settings/price-truck', [SettingsController::class, 'priceTruck'])->name('priceTruck');
 
-/*
+        /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Edição de Preço para Caminhonetes
 |--------------------------------------------------------------------------
 */
-    Route::post('/settings/price-truck/edit', [SettingsController::class, 'editPriceTruck'])->name('editPriceTruck');
+        Route::post('/settings/price-truck/edit', [SettingsController::class, 'editPriceTruck'])->name('editPriceTruck');
 
-/*
+        /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Pesquisa
 |--------------------------------------------------------------------------
 */
 
-    Route::post('/cars/search', [CarsController::class, 'search'])->name('search');
-
+        Route::post('/cars/search', [CarsController::class, 'search'])->name('search');
+    });
 });

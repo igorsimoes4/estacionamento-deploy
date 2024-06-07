@@ -69,6 +69,7 @@ body {
   background-color: #fff;
 }
 
+
 [tabindex="-1"]:focus:not(:focus-visible) {
   outline: 0 !important;
 }
@@ -267,6 +268,10 @@ select {
   word-wrap: normal;
 }
 
+.main-sidebar > .brand-link {
+    text-align: center !important;
+}
+
 button,
 [type="button"],
 [type="reset"],
@@ -322,6 +327,7 @@ legend {
 progress {
   vertical-align: baseline;
 }
+
 
 [type="number"]::-webkit-inner-spin-button,
 [type="number"]::-webkit-outer-spin-button {
