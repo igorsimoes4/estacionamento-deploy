@@ -14,7 +14,8 @@
         btn.addEventListener("click", function (e) {
             e.preventDefault();
             var carId = this.getAttribute("data-id");
-            var url = "https://estacionamento-deploy.vercel.app/painel/cars/showmodal/" + carId;
+            var baseUrl = window.location.origin;
+            var url = baseUrl + "/painel/cars/showmodal/" + carId;
             // Use uma requisição AJAX (XMLHttpRequest) para buscar os detalhes do carro
             var xhr = new XMLHttpRequest();
             xhr.open("GET", url, true);

@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CarsController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\EstacionamentoController;
+use App\Http\Controllers\PDFController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
@@ -36,7 +37,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/refresh', [AuthController::class, 'refresh'])->name('refresh');
 
-Route::middleware(['auth.cookie'])->group(function () {
+// Route::middleware(['auth.cookie'])->group(function () {
     /*
     |--------------------------------------------------------------------------
     | Rota Painel Administrativo
@@ -70,6 +71,7 @@ Route::middleware(['auth.cookie'])->group(function () {
 |--------------------------------------------------------------------------
 */
         Route::post('/pembayaran/print', [PembayaranController::class, 'print'])->name('pembayaran.print');
+        Route::post('/pembayaran/printTicket', [PembayaranController::class, 'printTicket'])->name('pembayaran.printTicket');
 
         /*
 |--------------------------------------------------------------------------
@@ -134,5 +136,15 @@ Route::middleware(['auth.cookie'])->group(function () {
 */
 
         Route::post('/cars/search', [CarsController::class, 'search'])->name('search');
+
+         /*
+|--------------------------------------------------------------------------
+| Rota Painel Administrativo Gerar PDF
+|--------------------------------------------------------------------------
+*/
+
+        Route::get('/car-mounth', [PDFController::class, 'generatePDFCars'])->name('generatePDFCars');
+        Route::get('/motorcycle-mounth', [PDFController::class, 'generatePDFMotorcycle'])->name('generatePDFMotorcycle');
+        Route::get('/truck-mounth', [PDFController::class, 'generatePDFTruck'])->name('generatePDFTruck');
     });
-});
+// });

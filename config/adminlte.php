@@ -33,7 +33,7 @@ return [
     */
 
     'use_ico_only' => false,
-    'use_full_favicon' => false,
+    'use_full_favicon' => true,
 
     /*
     |--------------------------------------------------------------------------
@@ -66,7 +66,7 @@ return [
     */
 
     'logo' => '<span class="break-word">' . config('adminlte.logo', 'Estacionamento') . '</span>',
-    'logo_img' => config('adminlte.logo_img', 'vendor/adminlte/dist/img/AdminLTELogo.png'), //'vendor/adminlte/dist/img/AdminLTELogo.png',
+    'logo_img' => config('adminlte.logo_img'), //'vendor/adminlte/dist/img/AdminLTELogo.png',
     'logo_img_class' => 'brand-image img-circle elevation-3 text-center',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
@@ -88,7 +88,7 @@ return [
     'auth_logo' => [
         'enabled' => true,
         'img' => [
-            'path' => config('adminlte.logo_img', 'vendor/adminlte/dist/img/AdminLTELogo.png'),
+            'path' => config('adminlte.auth_logo.img.path'),
             'alt' => 'Auth Logo',
             'class' => '',
             'width' => 50,
@@ -111,7 +111,7 @@ return [
     'preloader' => [
         'enabled' => true,
         'img' => [
-            'path' => config('adminlte.logo_img', 'vendor/adminlte/dist/img/AdminLTELogo.png'),
+            'path' => config('adminlte.preloader.img.path'),
             'alt' => 'AdminLTE Preloader Image',
             'effect' => 'animation__shake',
             'width' => 60,
@@ -318,42 +318,52 @@ return [
             'icon'        => 'fas fa-fw fa-info',
         ],
         [
-            'header' => 'Preços'
-
-        ],
-        [
-            'text'        => 'Preços Carros',
-            'url'         => 'painel/settings/price-car',
-            'icon'        => 'fas fa-fw fa-cash-register',
-        ],
-        [
-            'text'        => 'Preços Motos',
-            'url'         => 'painel/settings/price-motorcycle',
-            'icon'        => 'fas fa-fw fa-cash-register',
-        ],
-
-        [
-            'text'        => 'Preços Caminhonetes',
-            'url'         => 'painel/settings/price-truck',
-            'icon'        => 'fas fa-fw fa-cash-register',
+            'text'    => 'Gerenciar Preços',
+            'icon'    => 'fas fa-fw fa-cash-register',
+            'submenu' => [
+                [
+                    'text' => 'Preços Carros',
+                    'url'  => 'painel/settings/price-car',
+                    'icon' => 'fas fa-fw fa-car',
+                ],
+                [
+                    'text' => 'Preços Motos',
+                    'url'  => 'painel/settings/price-motorcycle',
+                    'icon' => 'fas fa-fw fa-motorcycle',
+                ],
+                [
+                    'text' => 'Preços Caminhonetes',
+                    'url'  => 'painel/settings/price-truck',
+                    'icon' => 'fas fa-fw fa-truck-pickup',
+                ],
+            ],
         ],
         [
             'header' => 'Relatórios',
         ],
         [
-            'text'        => 'Carros no Mês',
-            'url'         => 'painel/car-mounth',
-            'icon'        => 'fa fa-fw fa-car',
-        ],
-        [
-            'text'        => 'Motos no Mês',
-            'url'         => 'painel/motorcycle-mounth',
-            'icon'        => 'fa fa-fw fa-motorcycle',
-        ],
-        [
-            'text'        => 'Caminhonetes no Mês',
-            'url'         => 'painel/truck-mounth',
-            'icon'        => 'fa fa-fw fa-car',
+            'text'    => 'Relatórios Mensais',
+            'icon'    => 'fa fa-fw fa-folder',
+            'submenu' => [
+                [
+                    'text' => 'Carros no Mês',
+                    'url'  => 'painel/car-mounth',
+                    'icon' => 'fa fa-fw fa-car',
+                    'target' => '_blank',
+                ],
+                [
+                    'text' => 'Motos no Mês',
+                    'url'  => 'painel/motorcycle-mounth',
+                    'icon' => 'fa fa-fw fa-motorcycle',
+                    'target' => '_blank',
+                ],
+                [
+                    'text' => 'Caminhonetes no Mês',
+                    'url'  => 'painel/truck-mounth',
+                    'icon' => 'fa fa-fw fa-truck-pickup',
+                    'target' => '_blank',
+                ],
+            ],
         ],
     ],
 

@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\DB;
 
 class EstacionamentoController extends Controller
 {
-    public function index() {
+    public function index()
+    {
         $data = [];
 
         $car_parking = Cars::where('tipo_car', 'carro')->count();
@@ -20,7 +21,7 @@ class EstacionamentoController extends Controller
         $cars = Cars::paginate(10);
 
         // Monto as Informações para o grafico do Dashboard de 30 dias
-        $interval = intval(120);
+        $interval = intval(30);
         $dateInterval = now()->subDays($interval)->toDateTimeString();
         $carPie = Cars::selectRaw('tipo_car, count(tipo_car) as c')
             ->where('created_at', '>=', $dateInterval)
@@ -31,16 +32,62 @@ class EstacionamentoController extends Controller
         $data['CarLabels'] = array_keys($carPie);
         $data['CarValues'] = array_values($carPie);
 
-        // Monto as Informações para o grafico do Dashboard de um Ano
+        // Obter o ano atual
         $currentYear = date('Y');
+
+        // Definir o timestamp para o início do ano atual
         $startDateTimestamp = strtotime("$currentYear-01-01 00:00:00");
-        $carPieYear = Cars::selectRaw('tipo_car, count(tipo_car) as c')
-            ->where('created_at', '>=', $startDateTimestamp)
-            ->groupBy('tipo_car')
-            ->pluck('c', 'tipo_car')
-            ->toArray();
-        $data['CarLabelsYear'] = array_keys($carPieYear);
-        $data['CarValuesYear'] = array_values($carPieYear);
+
+        // Consultar para obter a contagem de cada tipo de carro adicionado por mês no ano atual
+        $carPieMonthYear = Cars::selectRaw('MONTH(created_at) as month, tipo_car, count(tipo_car) as c')
+            ->where('created_at', '>=', $startDateTimestamp) // Filtrar registros desde o início do ano atual
+            ->groupBy('month', 'tipo_car') // Agrupar por mês e tipo de carro
+            ->orderBy('month') // Ordenar por mês
+            ->get(); // Obter os resultados
+
+        // Inicializar arrays para armazenar os dados do gráfico
+        $data['CarLabelsYear'] = [];
+        $data['CarValuesYear'] = [];
+
+        // Preparar os dados para o gráfico
+        foreach ($carPieMonthYear as $entry) {
+            $month = $entry->month;
+            $tipo_car = $entry->tipo_car;
+            $count = $entry->c;
+
+            // Inicializar o array do mês se ainda não existir
+            if (!isset($data['CarValuesYear'][$month])) {
+                $data['CarValuesYear'][$month] = [];
+            }
+
+            // Armazenar a contagem no array do mês e tipo de carro
+            $data['CarValuesYear'][$month][$tipo_car] = $count;
+
+            // Adicionar o tipo de carro à lista de rótulos se ainda não estiver nela
+            if (!in_array($tipo_car, $data['CarLabelsYear'])) {
+                $data['CarLabelsYear'][] = $tipo_car;
+            }
+        }
+
+        // Ordenar os rótulos dos tipos de carros para consistência
+        sort($data['CarLabelsYear']);
+
+        // Inicializar array de valores formatados para o gráfico
+        $formattedValues = [];
+
+        // Garantir que todos os tipos de carros estejam presentes em cada mês com valor zero se necessário
+        for ($month = 1; $month <= 12; $month++) {
+            $formattedValues[$month] = [];
+            foreach ($data['CarLabelsYear'] as $label) {
+                $formattedValues[$month][] = $data['CarValuesYear'][$month][$label] ?? 0;
+            }
+        }
+
+        // Armazenar os valores formatados no array de dados
+        $data['CarValuesYear'] = $formattedValues;
+
+        // Agora, $data['CarLabels'] contém os tipos de carros e $data['CarValues'] contém os valores para cada mês
+
 
         $data['cars'] = $cars;
         $data['car_parking'] = $car_parking;
@@ -48,7 +95,5 @@ class EstacionamentoController extends Controller
         $data['caminhonete_parking'] = $caminhonete_parking;
 
         return view('home', compact('data'));
-
     }
-
 }

@@ -1,4 +1,4 @@
-<form action="{{route('cars.store')}}" class="form-horizontal" method="POST">
+<form action="{{route('cars.update')}}" class="form-horizontal" method="POST">
     @csrf
     <div class="form-group row">
 

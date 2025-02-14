@@ -16,110 +16,6 @@ use Illuminate\Support\Facades\Log;
 class CarsController extends Controller
 {
 
-
-    // public function price($id) {
-    //     $valor = 0;
-
-    //     $car = Cars::find($id);
-
-    //     date_default_timezone_set('America/Sao_Paulo');
-    //     $saida = new DateTime();
-    //     $entrada = new DateTime($car->created_at);
-    //     $tempo = date_diff($entrada, $saida);
-
-    //     $hora = $tempo->h;
-    //     $minuto = $tempo->i;
-    //     $dia = $tempo->d;
-    //     $mes = $tempo->m;
-
-    //     switch ($car->tipo_car) {
-    //         case 'carro':
-    //             $priceCar = PriceCar::find(1);
-    //             $valorHora = number_format($priceCar->valorHora, 0, ',', '.');
-    //             $valorMinimo = number_format($priceCar->valorMinimo, 0, ',', '.');
-    //             $valorDiaria = number_format($priceCar->valorDiaria, 0, ',', '.');
-    //             $taxaAdicional = number_format($priceCar->taxaAdicional, 0, ',', '.');
-    //             $taxaMensal = number_format($priceCar->taxaMensal, 0, ',', '.');
-    //             break;
-    //         case 'moto':
-    //             $priceMotorcycle = PriceMotorcycle::find(1);
-    //             $valorHora = number_format($priceMotorcycle->valorHora, 0, ',', '.');
-    //             $valorMinimo = number_format($priceMotorcycle->valorMinimo, 0, ',', '.');
-    //             $valorDiaria = number_format($priceMotorcycle->valorDiaria, 0, ',', '.');
-    //             $taxaAdicional = number_format($priceMotorcycle->taxaAdicional, 0, ',', '.');
-    //             $taxaMensal = number_format($priceMotorcycle->taxaMensal, 0, ',', '.');
-    //             break;
-    //         case 'caminhonete':
-    //             $priceTruck = PriceTruck::find(1);
-    //             $valorHora = number_format($priceTruck->valorHora, 0, ',', '.');
-    //             $valorMinimo = number_format($priceTruck->valorMinimo, 0, ',', '.');
-    //             $valorDiaria = number_format($priceTruck->valorDiaria, 0, ',', '.');
-    //             $taxaAdicional = number_format($priceTruck->taxaAdicional, 0, ',', '.');
-    //             $taxaMensal = number_format($priceTruck->taxaMensal, 0, ',', '.');
-    //             break;
-    //     }
-
-    //     if($mes >= 1) {
-    //         if ($dia >= 1) {
-    //             if ($hora >= 1) {
-    //                 if($hora > 1) {
-    //                     $valor = (($hora - 1) * $valorHora) + ($valorDiaria * $dia) + $taxaAdicional + ($taxaMensal * $mes);
-    //                 } else {
-    //                     $valor = $valorHora + ($valorDiaria * $dia) + $taxaAdicional + ($taxaMensal * $mes);
-    //                 }
-    //             } else  {
-    //                 if($hora < 1 && $minuto <= 30) {
-    //                     $valor = ($valorDiaria * $dia) + $valorMinimo + ($taxaMensal * $mes);
-    //                 } else {
-    //                     $valor = ($minuto - 1) * $valorHora + ($valorDiaria * $dia) + $taxaAdicional + ($taxaMensal * $mes);
-    //                 }
-    //             }
-    //         } else {
-    //             if ($hora >= 1) {
-    //                 if($hora > 1) {
-    //                     $valor = (($hora - 1) * $valorHora) + $valorDiaria + $taxaAdicional + ($taxaMensal * $mes);
-    //                 } else {
-    //                     $valor = $valorHora + $valorDiaria + $taxaAdicional + ($taxaMensal * $mes);
-    //                 }
-    //             } elseif ($hora < 1 && $minuto <= 30) {
-    //                 $valor = $valorMinimo + ($taxaMensal * $mes);
-    //             } elseif ($hora < 1 && $minuto >= 31 && $minuto <= 60) {
-    //                 $valor = ($minuto - 1) * $valorHora + $taxaAdicional + ($taxaMensal * $mes);
-    //             }
-    //         }
-    //     } else {
-    //         if ($dia >= 1) {
-    //             if ($hora >= 1) {
-    //                 if($hora > 1) {
-    //                     $valor = (($hora - 1) * $valorHora) + ($valorDiaria * $dia) + $taxaAdicional;
-    //                 } else {
-    //                     $valor = $valorHora + ($valorDiaria * $dia) + $taxaAdicional;
-    //                 }
-    //             } else {
-    //                 if($hora < 1 && $minuto <= 30) {
-    //                     $valor = ($valorDiaria * $dia) + $valorMinimo;
-    //                 } else {
-    //                     $valor = ($minuto - 1) * $valorHora + ($valorDiaria * $dia) + $taxaAdicional;
-    //                 }
-    //             }
-    //         } else {
-    //             if ($hora >= 1) {
-    //                 if($hora > 1) {
-    //                     $valor = (($hora - 1) * $valorHora) + $taxaAdicional;
-    //                 } else {
-    //                     $valor = $valorHora + $taxaAdicional;
-    //                 }
-    //             } elseif ($hora < 1 && $minuto <= 30) {
-    //                 $valor = $valorMinimo;
-    //             } elseif ($hora < 1 && $minuto >= 31 && $minuto <= 60) {
-    //                 $valor = ($minuto - 1) * $valorHora + $taxaAdicional;
-    //             }
-    //         }
-    //     }
-    //     return $valor;
-    // }
-
-
     public function price($id)
     {
         $car = Cars::findOrFail($id);
@@ -154,29 +50,38 @@ class CarsController extends Controller
     private function calculatePrice($tempo, $price, $id)
     {
         $valor = 0;
-        $hora = $tempo->h;
         $minuto = $tempo->i;
+        $hora = $tempo->h;
         $dia = $tempo->d;
         $mes = $tempo->m;
 
-        // Cálculo do valor com base no tempo e nos preços
-        if ($mes >= 1) {
-            $valor += $price->taxaMensal * $mes;
-        }
-        if ($dia >= 1) {
-            $valor += $price->valorDiaria * $dia;
-        }
-        if ($hora >= 1) {
-            if ($hora > 1) {
-                $valor += ($hora - 1) * $price->valorHora;
-            } else {
-                $valor += $price->valorHora;
-            }
-        } elseif ($minuto > 30) {
-            $valor += ($minuto - 1) * $price->valorHora;
-        }
+        $valorMinimo = $price->valorMinimo;
+        $valorHora = $price->valorHora;
+        $valorDiaria = $price->valorDiaria;
+        $taxaMensal = $price->taxaMensal;
+        $taxaAdicional = $price->taxaAdicional;
 
-        $valor += $price->taxaAdicional;
+        // Taxas fixas que sempre são adicionadas
+        if ($mes >= 1) {
+            $valor += ($taxaMensal * $mes);
+        }
+        // Cálculo do valor com base nos dias e horas
+        if ($dia >= 1) {
+            $valor += ($valorDiaria * $dia);
+            if ($hora >= 1) {
+                $valor += ($hora > 1) ? (($hora - 1) * $valorHora) + $taxaAdicional : $valorHora;
+            } else {
+                $valor += $valorHora;
+            }
+        } else {
+            if ($hora >= 1) {
+                $valor += ($hora > 1) ? (($hora - 1) * $valorHora) + $taxaAdicional : $valorHora;
+            } elseif ($minuto <= 30) {
+                $valor += $valorMinimo;
+            } else {
+                $valor += $valorHora;
+            }
+        }
 
         Log::info("Cálculo de preço para o carro $id: tempo de permanência - dias: $dia, horas: $hora, minutos: $minuto");
         return $valor;
@@ -190,7 +95,8 @@ class CarsController extends Controller
     public function index()
     {
         $data = [];
-        $cars = Cars::paginate(6);
+        $cars = Cars::where('status','=', null)->orderBy('created_at', 'desc')->paginate(4);
+
 
         foreach ($cars as $car) {
             $car['price'] = $this->price($car->id);
@@ -198,7 +104,6 @@ class CarsController extends Controller
 
         $data['cars'] = $cars;
         return view('cars', $data);
-        // return response()->json($data);
     }
 
     public function search(Request $req)
@@ -227,9 +132,9 @@ class CarsController extends Controller
 
         // Realizar a lógica de pesquisa no seu modelo ou na fonte de dados desejada
         // Suponhamos que você tenha um modelo chamado "Veiculo" para pesquisa
-        $cars = Cars::where('placa', 'LIKE', '%' . $search . '%')->paginate(6);
+        $cars = Cars::where('placa', 'LIKE', '%' . $search . '%')->where('status','=', null)->paginate(4);
 
-        if($cars->isEmpty()) {
+        if ($cars->isEmpty()) {
             Log::warning("Nenhum carro encontrado para a pesquisa: $search");
             return redirect(route('cars.index'))->withErrors(['error' => "Carros Não Localizados contendo $search na Placa"]);
         }
@@ -291,7 +196,7 @@ class CarsController extends Controller
         $car->preco = 0;
         $car->save();
 
-        Log::info("Carro Adicionado com sucesso", $car);
+        Log::info("Carro Adicionado com sucesso" . $car->placa);
 
         return redirect(route('cars.index'))->with('create', 'Carro adicionado com sucesso');
     }
@@ -381,6 +286,42 @@ class CarsController extends Controller
      */
     public function destroy($id)
     {
-        //
+        // 1. Encontrar o registro do carro estacionado pelo ID
+        $car = Cars::findOrFail($id);
+
+        // 2. Calcular o valor da estadia
+        $entrada = Carbon::parse($car->created_at);
+        $saida = Carbon::now();
+        $tempo = $saida->diff($entrada);
+
+        // Determinar o tipo de veículo e buscar os preços correspondentes
+        switch ($car->tipo_car) {
+            case 'carro':
+                $price = PriceCar::first();
+                break;
+            case 'moto':
+                $price = PriceMotorcycle::first();
+                break;
+            case 'caminhonete':
+                $price = PriceTruck::first();
+                break;
+            default:
+                return redirect(route('cars.index'))->with('delete_car', 'Tipo de veículo desconhecido.')->setStatusCode(400);
+        }
+
+        // Calcular o valor com base no tempo e nos preços
+        $valor = $this->calculatePrice($tempo, $price, $id);
+
+        // 3. Atualizar o registro com o valor e marcar como finalizado
+        $car->preco = $valor;
+        $car->status = 'finalizado'; // Supondo que há uma coluna 'status' no banco de dados
+        $car->saida = $saida->format('Y-m-d H:i:s');
+        $car->save();
+
+
+
+        Log::info("Carro finalizado com sucesso: $car->placa com valor total de $valor");
+
+        return redirect(route('cars.index'))->with('create', 'Carro finalizado com sucesso.');
     }
 }

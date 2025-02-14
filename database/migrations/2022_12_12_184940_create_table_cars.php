@@ -19,6 +19,9 @@ return new class extends Migration
             $table->string('placa');
             $table->time('entrada');
             $table->float('preco');
+            $table->string('tipo_car');
+            $table->string('status')->nullable();
+            $table->timestamps('saida');
             $table->timestamps();
         });
     }

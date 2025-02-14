@@ -63,7 +63,7 @@
         <div class="col-md-6">
             <div class="form-group">
                 <label for="cnpjCpfDaEmpresa">CNPJ da Empresa</label>
-                <input type="text" placeholder="Digite o CNPJ da Empresa" name="cnpj_Cpf_da_empresa" id="cnpj_Cpf_da_empresa" class="form-control @error('cnpj_Cpf_da_empresa') is-invalid @enderror" value="{{ $estacionamentos->cnpj_Cpf_da_empresa }}" />
+                <input type="text" placeholder="Digite o CNPJ da Empresa" name="cnpj_Cpf_da_empresa" id="cnpj_Cpf_da_empresa" class="form-control @error('cnpj_Cpf_da_empresa') is-invalid @enderror" value="{{ $estacionamentos->cnpj_cpf_da_empresa }}" />
             </div>
         </div>
     </div>

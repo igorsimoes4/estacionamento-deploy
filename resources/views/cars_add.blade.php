@@ -1,12 +1,19 @@
 @extends('adminlte::page')
-<script src="{{asset('js/jquery.min.js')}}"></script>
-<script src="{{asset('adminlte/dist/js/adminlte.min.js')}}"></script>
-<script src="{{asset('overlayScrollbars/js/jquery.overlayScrollbars.min.js')}}">
-</script>
-<script src="{{asset('popper/popper.min.js')}}"></script>
-<script src="{{asset('bootstrap/js/bootstrap.bundle.min.js')}}"></script>
-<link rel="stylesheet" href="{{asset('adminlte/dist/css/adminlte.css')}}" />
-<link rel="stylesheet" href="{{asset('fontawesome-free/css/all.min.css')}}" />
+@section('adminlte_css')
+    <!-- Adiciona o favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('img/LogoEstacionamento.png') }}">
+
+    <link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.css') }}" />
+    <link rel="stylesheet" href="{{ asset('fontawesome-free/css/all.min.css') }}" />
+
+    <!-- Inclui os estilos padrão do AdminLTE -->
+    @parent
+@endsection
+<script src="{{ asset('js/jquery.min.js') }}"></script>
+    <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
+    <script src="{{ asset('overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
+    <script src="{{ asset('popper/popper.min.js') }}"></script>
+    <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 
 @section('title', 'Nova Página')
 

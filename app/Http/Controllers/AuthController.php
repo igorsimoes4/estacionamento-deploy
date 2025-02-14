@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Constraint\ArrayHasKey;
 use Symfony\Component\HttpFoundation\Cookie as HttpFoundationCookie;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -31,15 +32,22 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
         $credentials = $request->only('email', 'password');
+
+        $validator = Validator::make($credentials, [
+            'email' => ['required','string', 'email'],
+            'password' => ['required','string'],
+        ]);
+
+        if($validator->fails()) {
+            Log::error('Erro no Login: ' . $credentials['email'] . $credentials['password']);
+            return redirect(route('login'))->withErrors($validator)->withInput();
+        }
+
 
         $token = Auth::attempt($credentials);
         if (!$token) {
-            Log::error('Token não gerado' . $credentials['email'] . $credentials['password']);
+            Log::error('Token não gerado ' . $credentials['email'] . $credentials['password']);
             Session::flash('error', 'Email e ou Senha Incorretos');
             return redirect()->route('login')->with([
                 'status' => 'error',

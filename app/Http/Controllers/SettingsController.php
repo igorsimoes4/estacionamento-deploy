@@ -20,7 +20,7 @@ class SettingsController extends Controller
 
     public function editSettings(Request $req) {
         $data = $req->only([
-            'nome_da_Empresa',
+            'nomeDaEmpresa',
             'endereco',
             'cidade',
             'estado',
@@ -34,7 +34,7 @@ class SettingsController extends Controller
         ]);
 
         $validator = Validator::make($data, [
-            'nome_da_Empresa'                 => ['required', 'string'],
+            'nomeDaEmpresa'                 => ['required', 'string'],
             'endereco'                        => ['required', 'string'],
             'cidade'                          => ['required', 'string'],
             'estado'                          => ['required', 'string'],
@@ -53,7 +53,7 @@ class SettingsController extends Controller
         }
 
         $estacionamento = Settings::find(1);
-        $estacionamento->nome_da_empresa = $data['nome_da_Empresa'];
+        $estacionamento->nome_da_empresa = $data['nomeDaEmpresa'];
         $estacionamento->endereco = $data['endereco'];
         $estacionamento->cidade = $data['cidade'];
         $estacionamento->estado = $data['estado'];
