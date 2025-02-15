@@ -9,11 +9,11 @@
     <!-- Inclui os estilos padrão do AdminLTE -->
     @parent
 @endsection
+<script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
+<script src="{{ asset('overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
+<script src="{{ asset('popper/popper.min.js') }}"></script>
+<script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('js/jquery.min.js') }}"></script>
-    <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
-    <script src="{{ asset('overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
-    <script src="{{ asset('popper/popper.min.js') }}"></script>
-    <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 
 @section('title', 'Nova Página')
 

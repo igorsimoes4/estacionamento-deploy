@@ -37,7 +37,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/refresh', [AuthController::class, 'refresh'])->name('refresh');
 
-// Route::middleware(['auth.cookie'])->group(function () {
+Route::middleware(['auth.cookie'])->group(function () {
     /*
     |--------------------------------------------------------------------------
     | Rota Painel Administrativo
@@ -147,4 +147,4 @@ Route::post('/refresh', [AuthController::class, 'refresh'])->name('refresh');
         Route::get('/motorcycle-mounth', [PDFController::class, 'generatePDFMotorcycle'])->name('generatePDFMotorcycle');
         Route::get('/truck-mounth', [PDFController::class, 'generatePDFTruck'])->name('generatePDFTruck');
     });
-// });
+});
