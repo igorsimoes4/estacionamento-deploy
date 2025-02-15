@@ -39,9 +39,7 @@
 
 @section('title', 'Painel | Home')
 
-@section('content_header')
-<h1>Dashboard de Estacionamento</h1>
-@endsection
+
 
 @section('content')
     <div class="row">
