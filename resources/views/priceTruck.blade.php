@@ -82,6 +82,12 @@
 @endsection
 
 @section('content_header')
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item" aria-current="page"><a href="/painel"> Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Preço Caminhonetes</li>
+    </ol>
+</nav>
     <h1 style="display: flex; justify-content:space-between; padding: 0 20px 0 20px; margin-bottom:10px;">
         Preço para Caminhonetes
     </h1>
