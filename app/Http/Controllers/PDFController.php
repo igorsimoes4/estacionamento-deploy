@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cars;
-use Barryvdh\DomPDF\Facade\PDF as PDF;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Carbon\Carbon as Carbon;
 use Illuminate\Http\Request;
 
