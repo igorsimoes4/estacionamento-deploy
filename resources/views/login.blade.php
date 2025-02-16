@@ -70,7 +70,7 @@
                 @csrf
                 <div class="input-group mb-3">
                     <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                        placeholder="@lang('adminlte::adminlte.email')" value="{{ old('email') }}" autocomplete="off" >
+                        placeholder="@lang("adminlte::adminlte.email")" value="{{ old('email') }}" autocomplete="off" >
                     <div class="input-group-append">
                         <div class="input-group-text">
                             <span class="fas fa-envelope"></span>
