@@ -8,14 +8,16 @@
     <link rel="stylesheet" href="{{ asset('fontawesome-free/css/all.min.css') }}" />
     <style>
         /* Garantir que o layout ocupe 100% da altura da tela */
-        html, body {
+        html,
+        body {
             height: 100%;
             margin: 0;
         }
 
         /* O conteúdo principal deve ocupar o espaço restante da tela */
         .content-wrapper {
-            min-height: calc(100vh - 56px); /* 56px é a altura do cabeçalho padrão do AdminLTE */
+            min-height: calc(100vh - 56px);
+            /* 56px é a altura do cabeçalho padrão do AdminLTE */
         }
 
         .content {
@@ -32,14 +34,20 @@
             width: 100% !important;
             height: 100% !important;
         }
-        </style>
+    </style>
 
-        @parent
+    @parent
 @endsection
 
 @section('title', 'Painel | Home')
 
-
+@section('content_header')
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item active" aria-current="page">Home</li>
+        </ol>
+    </nav>
+@endsection
 
 @section('content')
     <div class="row">
@@ -137,7 +145,8 @@
                 datasets: [{
                     data: {!! json_encode($data['CarValues']) !!},
                     backgroundColor: getRandomColors({{ count($data['CarLabels']) }}),
-                    borderColor: getRandomColors({{ count($data['CarLabels']) }}).map(color => color.replace('0.7', '1')),
+                    borderColor: getRandomColors({{ count($data['CarLabels']) }}).map(color => color
+                        .replace('0.7', '1')),
                     borderWidth: 2
                 }]
             },
@@ -148,7 +157,10 @@
                         display: true,
                         position: 'top',
                         labels: {
-                            font: { size: 14, weight: 'bold' },
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
                             color: 'rgba(0, 0, 0, 0.7)'
                         }
                     },
@@ -159,8 +171,13 @@
                             }
                         },
                         backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                        titleFont: { size: 16, weight: 'bold' },
-                        bodyFont: { size: 14 }
+                        titleFont: {
+                            size: 16,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 14
+                        }
                     }
                 }
             }
@@ -174,14 +191,16 @@
             backgroundColor: `rgba(${255 - (index * 50)}, ${99 + (index * 50)}, 132, 0.2)`,
             borderColor: `rgba(${255 - (index * 50)}, ${99 + (index * 50)}, 132, 1)`,
             borderWidth: 2,
-            fill: true,  // Preencher a área abaixo da linha
+            fill: true, // Preencher a área abaixo da linha
             tension: 0.4 // Deixar a linha suavizada
         }));
 
         var myLineChart = new Chart(ctx2, {
             type: 'line',
             data: {
-                labels: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+                labels: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro',
+                    'Outubro', 'Novembro', 'Dezembro'
+                ],
                 datasets: datasets
             },
             options: {
@@ -189,16 +208,26 @@
                 scales: {
                     x: {
                         beginAtZero: true,
-                        grid: { display: true },
+                        grid: {
+                            display: true
+                        },
                         ticks: {
-                            font: { size: 12, weight: 'bold' }
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
                         }
                     },
                     y: {
                         beginAtZero: true,
-                        grid: { display: true },
+                        grid: {
+                            display: true
+                        },
                         ticks: {
-                            font: { size: 12, weight: 'bold' }
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
                         }
                     }
                 },
@@ -206,14 +235,22 @@
                     legend: {
                         position: 'top',
                         labels: {
-                            font: { size: 14, weight: 'bold' },
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
                             color: 'rgba(0, 0, 0, 0.7)'
                         }
                     },
                     tooltip: {
                         backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                        titleFont: { size: 16, weight: 'bold' },
-                        bodyFont: { size: 14 },
+                        titleFont: {
+                            size: 16,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 14
+                        },
                         callbacks: {
                             label: function(tooltipItem) {
                                 return tooltipItem.dataset.label + ': ' + tooltipItem.raw;
