@@ -18,6 +18,13 @@
 @section('title', 'Nova Página')
 
 @section('content_header')
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item" aria-current="page"><a href="/painel"> Home</a></li>
+        <li class="breadcrumb-item" aria-current="page"><a href="/painel/cars" >Carros Estacionados</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Adicionar Carro</li>
+    </ol>
+</nav>
     <h1 style="display: flex; justify-content:space-between; padding: 0 20px 0 20px; margin-bottom:10px;">
         Adicionar Veículo
 

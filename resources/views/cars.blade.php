@@ -156,6 +156,12 @@
 @endsection
 
 @section('content_header')
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page"><a href="/painel"> Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Carros Estacionados</li>
+        </ol>
+    </nav>
     <h1 style="display: flex; justify-content:space-between; padding: 0 20px 0 20px; margin-bottom:10px;">
         Veículos no Estacionamento
         <a class="btn btn-md btn-success" href="{{ route('cars.create') }}"><i style="margin-right: 5px; font-size:15px;"
