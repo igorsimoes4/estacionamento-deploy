@@ -63,7 +63,8 @@
     <div class="wrapper form active">
         <header>
             <img src="{{asset('img/LogoEstacionamento.png')}}"  height="50px">
-            <p> @lang('adminlte::adminlte.sign_in')</p>
+            <p> __('adminlte::adminlte.sign_in')</p>
+
         </header>
         <div class="form login">
             <form action="{{ route('login') }}" method="post" autocomplete="off">
