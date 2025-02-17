@@ -24,6 +24,8 @@
         }
         .input-group-text {
             border-radius: 0px 10px 10px 0px !important;
+            background-color: #a9abac !important;
+            color: #000 !important;
         }
         .input-group input {
             border-radius: 10px 0px 0px 10px !important;
