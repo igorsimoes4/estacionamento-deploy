@@ -64,7 +64,6 @@
         <header>
             <img src="{{asset('img/LogoEstacionamento.png')}}"  height="50px">
             <p>@lang('adminlte::adminlte.sign_in')</p>
-            <p>@lang('auth::password')</p>
 
         </header>
         <div class="form login">
