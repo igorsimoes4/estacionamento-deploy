@@ -92,15 +92,26 @@ class CarsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $data = [];
-        $cars = Cars::where('status','=', null)->orderBy('created_at', 'desc')->paginate(4);
+        
+        // Pega o parâmetro de pesquisa da URL, se houver
+        $search = $request->get('search', '');
+        
+        // Realiza a busca filtrada por 'placa' com base na pesquisa, se houver
+        $cars = Cars::where('status', '=', null)
+                    ->where('placa', 'LIKE', '%' . $search . '%')
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(8);
 
-
+        // Calcula o preço para cada carro
         foreach ($cars as $car) {
             $car['price'] = $this->price($car->id);
         }
+
+        // Preserva o parâmetro de pesquisa na URL da paginação
+        $cars->appends(['search' => $search]);
 
         $data['cars'] = $cars;
         return view('cars', $data);
@@ -108,7 +119,6 @@ class CarsController extends Controller
 
     public function search(Request $req)
     {
-
         $data = $req->only([
             'search'
         ]);
@@ -127,12 +137,12 @@ class CarsController extends Controller
             Log::error('Failed search cars', ['validator' => $validator]);
             return redirect(route('cars.index'))->withErrors($validator)->withInput();
         }
+
         // Obter a consulta digitada pelo usuário
         $search = $data['search'];
 
         // Realizar a lógica de pesquisa no seu modelo ou na fonte de dados desejada
-        // Suponhamos que você tenha um modelo chamado "Veiculo" para pesquisa
-        $cars = Cars::where('placa', 'LIKE', '%' . $search . '%')->where('status','=', null)->paginate(4);
+        $cars = Cars::where('placa', 'LIKE', '%' . $search . '%')->where('status', '=', null)->paginate(8);
 
         if ($cars->isEmpty()) {
             Log::warning("Nenhum carro encontrado para a pesquisa: $search");
@@ -142,6 +152,9 @@ class CarsController extends Controller
         foreach ($cars as $car) {
             $car['price'] = $this->price($car->id);
         }
+
+        // Preserva o parâmetro de pesquisa na URL de paginação
+        $cars->appends(['search' => $search]);
 
         $data['cars'] = $cars;
 

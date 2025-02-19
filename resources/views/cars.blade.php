@@ -1,49 +1,87 @@
 @extends('adminlte::page')
 
 @section('adminlte_css')
-    <!-- Adiciona o favicon -->
     <link rel="icon" type="image/png" href="{{ asset('img/LogoEstacionamento.png') }}">
-
-    {{-- <link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.css') }}" /> --}}
     <link rel="stylesheet" href="{{ asset('fontawesome-free/css/all.min.css') }}" />
-
-    <!-- Inclui os estilos padrão do AdminLTE -->
     @parent
 
     <style>
-        .form-control:disabled {
-            background-color: transparent;
-            border-color: #949494;
+        .wrapper, body, html {
+            min-height: 130vh !important;
+        }
+        body, html {
+            background-color: #F4F6F9;
+        }
+        /* Estilizaçbão do relógio digital */
+        #clock-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 60px;
+            background: #343a40;
+            border-radius: 8px;
+            padding: 10px 20px;
+            box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.1), 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
-        /* Responsividade para telas pequenas */
+        #rel {
+            font-size: 36px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            background: none;
+            border: none;
+            outline: none;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Responsividade para os botões */
         @media (max-width: 768px) {
-            .table-responsive {
-                -ms-overflow-style: none;  /* Esconde a barra de rolagem do IE */
-                scrollbar-width: none;  /* Esconde a barra de rolagem do Firefox */
+            .btn-group {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
             }
+
+            .btn-custom {
+                width: 100%;
+                font-size: 16px;
+            }
+
+            .table-responsive {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+
             .table-responsive::-webkit-scrollbar {
-                display: none;  /* Esconde a barra de rolagem no Chrome/Safari */
+                display: none;
             }
 
             .table {
                 width: 100%;
-                overflow-x: auto; /* Permite rolar horizontalmente */
-                display: block; /* Necessário para habilitar a rolagem */
-            }
-
-            /* Esconde colunas em telas pequenas */
-            .hide-small {
-                display: none;
-            }
-
-            /* Exibe como cartões em telas pequenas */
-            .table-card {
+                overflow-x: auto;
                 display: block;
-                margin-bottom: 10px;
-                border: 1px solid #ddd;
-                padding: 15px;
-                background-color: #fff;
+            }
+
+            /* Ajustes para o layout da tabela em telas pequenas */
+            .table th, .table td {
+                padding: 8px;
+                font-size: 14px;
+            }
+
+            #clock-container {
+                padding: 10px;
+                font-size: 28px;
+            }
+
+            .col-sm-12 {
+                margin-bottom: 15px;
+            }
+
+            .btn-block {
+                width: 100%;
             }
         }
     </style>
@@ -63,90 +101,31 @@
     <script>
         @if ($errors->any())
             @foreach ($errors->all() as $error)
-                toastr.options = {
-                    "closeButton": true,
-                    "debug": false,
-                    "newestOnTop": false,
-                    "progressBar": true,
-                    "positionClass": "toast-top-right",
-                    "preventDuplicates": false,
-                    "onclick": null,
-                    "showDuration": "1200",
-                    "hideDuration": "1200",
-                    "timeOut": "5000",
-                    "extendedTimeOut": "1000",
-                    "showEasing": "swing",
-                    "hideEasing": "linear",
-                    "showMethod": "fadeIn",
-                    "hideMethod": "fadeOut"
-                }
                 toastr.error('{{ $error }}');
             @endforeach
         @endif
+
         @if (session('create'))
-            toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "newestOnTop": false,
-                "progressBar": true,
-                "positionClass": "toast-top-right",
-                "preventDuplicates": false,
-                "onclick": null,
-                "showDuration": "1200",
-                "hideDuration": "1200",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
-            }
             toastr.success('{{ session('create') }}');
         @endif
+
         @if (session('delete_car'))
-            toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "newestOnTop": false,
-                "progressBar": true,
-                "positionClass": "toast-top-right",
-                "preventDuplicates": false,
-                "onclick": null,
-                "showDuration": "1200",
-                "hideDuration": "1200",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
-            }
             toastr.error('{{ session('delete_car') }}');
         @endif
 
+        // Relógio digital
         function relogio() {
-            var data = new Date();
-            var hora = data.getHours();
-            var minuto = data.getMinutes();
-            var segundo = data.getSeconds();
-
-            if (hora < 10) {
-                hora = "0" + hora;
-            }
-            if (minuto < 10) {
-                minuto = "0" + minuto;
-            }
-            if (segundo < 10) {
-                segundo = "0" + segundo;
-            }
-
-            var horas = hora + ":" + minuto + ":" + segundo;
-            document.getElementById("rel").value = horas;
+            let data = new Date();
+            let hora = String(data.getHours()).padStart(2, '0');
+            let minuto = String(data.getMinutes()).padStart(2, '0');
+            let segundo = String(data.getSeconds()).padStart(2, '0');
+            document.getElementById("rel").value = `${hora}:${minuto}:${segundo}`;
         }
 
-        var tempo = setInterval(relogio, 1000);
+        setInterval(relogio, 1000);
+        relogio();
 
-        // Inicializa o DataTable com a opção de responsividade ativada
+        // Inicializa o DataTable com responsividade
         $(document).ready(function() {
             $('#car-table').DataTable({
                 responsive: true
@@ -158,28 +137,29 @@
 @section('content_header')
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item" aria-current="page"><a href="/painel"> Home</a></li>
+            <li class="breadcrumb-item"><a href="/painel"> Home</a></li>
             <li class="breadcrumb-item active" aria-current="page">Carros Estacionados</li>
         </ol>
     </nav>
-    <h1 style="display: flex; justify-content:space-between; padding: 0 20px 0 20px; margin-bottom:10px;">
-        Veículos no Estacionamento
-        <a class="btn btn-md btn-success" href="{{ route('cars.create') }}"><i style="margin-right: 5px; font-size:15px;"
-                class="fa fa-plus-circle" aria-hidden="true"></i> Adicionar Veículo</a>
-    </h1>
+    <div class="d-flex justify-content-between px-4 mb-3">
+        <h1>Veículos no Estacionamento</h1>
+        <a class="btn btn-md btn-success" href="{{ route('cars.create') }}">
+            <i class="fa fa-plus-circle mr-2"></i> Adicionar Veículo
+        </a>
+    </div>
 @endsection
 
 @section('content')
     <div class="card">
         <div class="card-header">
             <div class="row">
-                <div class="col-md-3">
-                    <input disabled style="text-align: center; font-size: 50px; border:none; background-color:#fff;"
-                        class="form-control form-control-lg" type="text" id="rel">
+                <div class="col-sm-12 col-md-3">
+                    <div id="clock-container">
+                        <input disabled class="form-control form-control-lg" type="text" id="rel">
+                    </div>
                 </div>
-                <div class="col-md-6">
-                </div>
-                <div class="col-md-3">
+                <div class="col-sm-12 col-md-6"></div>
+                <div class="col-sm-12 col-md-3">
                     <form action="{{ route('search') }}" method="POST">
                         @csrf
                         <div class="input-group">
@@ -187,7 +167,7 @@
                                 class="form-control form-control-lg @error('search') is-invalid @enderror"
                                 placeholder="Digite a Placa">
                             <div class="input-group-append">
-                                <button class="btn btn-lg btn-default"><i class="fa fa-search"></i></button>
+                                <button class="btn btn-lg btn-default btn-block"><i class="fa fa-search"></i></button>
                             </div>
                         </div>
                     </form>
@@ -195,86 +175,65 @@
             </div>
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered" id="car-table">
-                        <thead>
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered" id="car-table">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Modelo</th>
+                            <th>Placa</th>
+                            <th>Hora Entrada</th>
+                            <th>Total Estacionado</th>
+                            <th>Preço</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($cars as $car)
+                            @php
+                                date_default_timezone_set('America/Sao_Paulo');
+                                $saida = new DateTime();
+                                $entrada = new DateTime($car->created_at);
+                                $tempo = date_diff($entrada, $saida);
+                            @endphp
                             <tr>
-                                <th >Tipo</th>
-                                <th >Modelo</th>
-                                <th>Placa</th>
-                                <th >Hora Entrada</th>
-                                <th>Total Estacionado</th>
-                                <th>Preço</th>
-                                <th>Ações</th>
+                                <td>{{ $car->tipo_car }}</td>
+                                <td>{{ $car->modelo }}</td>
+                                <td>{{ $car->placa }}</td>
+                                <td>{{ $car->entrada }}</td>
+                                <td>
+                                    @php
+                                        echo ($tempo->m ? "$tempo->m meses " : '') . 
+                                             ($tempo->d ? "$tempo->d dias " : '') . 
+                                             ($tempo->h ? "$tempo->h horas " : '') . 
+                                             ($tempo->i ? "$tempo->i minutos" : '1 minuto');
+                                    @endphp
+                                </td>
+                                <td>R$ {{ number_format($car->price, 2, ',', '') }}</td>
+                                <td>
+                                    <div class="row justify-content-center align-items-center flex-wrap flex-md-nowrap text-center text-md-left mb-2 mb-md-0 flex-grow-1" style="gap:10px;">
+                                        <a class="btn btn-sm btn-warning modal-btn" data-id="{{ $car->id }}" data-toggle="modal" data-target="#myModal">
+                                            <i class="fas fa-eye"></i> Visualizar
+                                        </a>
+                                        <a class="btn btn-sm btn-danger" href="#" onclick="event.preventDefault(); document.getElementById('delete-form-{{ $car->id }}').submit();">
+                                            <i class="fas fa-edit"></i> Finalizar
+                                        </a>
+                                        <form id="delete-form-{{ $car->id }}" action="{{ route('cars.destroy', $car->id) }}" method="POST" style="display: none;">
+                                            @csrf
+                                            @method('DELETE')
+                                        </form>
+                                        <x-print.form :car="$car" :entrada="$entrada" />
+                                    </div>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($cars as $car)
-                                @php
-                                    date_default_timezone_set('America/Sao_Paulo');
-                                    $saida = new DateTime();
-                                    $entrada = new DateTime($car->created_at);
-                                    $tempo = date_diff($entrada, $saida);
-
-                                    $hora = $tempo->h;
-                                    $minuto = $tempo->i;
-                                    $dia = $tempo->d;
-                                    $mes = $tempo->m;
-                                @endphp
-                                <tr>
-                                    <th >{{ $car->tipo_car }}</th>
-                                    <th >{{ $car->modelo }}</th>
-                                    <th>{{ $car->placa }}</th>
-                                    <th >{{ $car->entrada }}</th>
-                                    <th>
-                                        @php
-                                            $result =
-                                                ($mes >= 1 ? "$mes meses " : '') .
-                                                ($dia >= 1 ? ($dia == 1 ? "$dia dia " : "$dia dias ") : '') .
-                                                ($hora >= 1 ? ($hora == 1 ? "$hora hora " : "$hora horas ") : '') .
-                                                ($minuto >= 1
-                                                    ? ($minuto == 1
-                                                        ? "$minuto minuto"
-                                                        : "$minuto minutos")
-                                                    : '1 minuto');
-                                            echo $result;
-                                        @endphp
-                                    </th>
-                                    <th>R$ @php echo number_format($car->price, 2, ',', '')  @endphp </th>
-                                    <th width="300">
-                                        <div class="row">
-                                            <a style="margin-right: 5px; height: 30px;" class="btn btn-sm btn-warning modal-btn"
-                                                data-id="{{ $car->id }}" data-toggle="modal" data-target="#myModal">
-                                                <i style="margin-right: 5px; font-size:13px;" class="fas fa-solid fa-eye"></i>
-                                                Visualizar
-                                            </a>
-                                            <a style="margin-right: 5px; height: 30px;" id="teste"
-                                                class="btn btn-sm btn-danger" href="#"
-                                                onclick="event.preventDefault(); document.getElementById('delete-form-{{ $car->id }}').submit();">
-                                                <i style="margin-right: 5px; font-size:13px;" class="fas fa-solid fa-edit"></i>
-                                                Finalizar
-                                            </a>
-
-                                            <form id="delete-form-{{ $car->id }}"
-                                                action="{{ route('cars.destroy', $car->id) }}" method="POST"
-                                                style="display: none;">
-                                                @csrf
-                                                @method('DELETE')
-                                            </form>
-                                            <x-print.form :car="$car" :entrada="$entrada" />
-                                        </div>
-                                    </th>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-        </div>
+        </div>        
         <div class="card-footer">
             <div style="display: flex; justify-content:flex-end;padding: 0 20px 0 20px;">
-                {{ $cars->links('pagination::bootstrap-4') }}
+                {{ $cars->appends(['search' => request('search')])->links('pagination::bootstrap-4') }}
             </div>
         </div>
     </div>

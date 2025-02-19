@@ -31,7 +31,7 @@ Route::get('/', function () {
     return redirect(route('login'));
 });
 ///////
-Route::get('login', function () {return view('login');})->name('login');
+Route::get('/login', function () {return view('login');});
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
@@ -57,6 +57,8 @@ Route::middleware(['auth.cookie'])->group(function () {
 |--------------------------------------------------------------------------
 */
         Route::resource('/cars', CarsController::class);
+        Route::post('/cars/create', [CarsController::class, 'store'])->name('cars.store');
+
 
         /*
 |--------------------------------------------------------------------------
@@ -135,7 +137,7 @@ Route::middleware(['auth.cookie'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-        Route::post('/cars/search', [CarsController::class, 'search'])->name('search');
+        Route::post('/cars', [CarsController::class, 'search'])->name('search');
 
          /*
 |--------------------------------------------------------------------------
