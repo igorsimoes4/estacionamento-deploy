@@ -221,20 +221,6 @@
                         <input disabled class="form-control form-control-lg" type="text" id="rel">
                     </div>
                 </div>
-                {{-- <div class="col-sm-12 col-md-6"></div>
-                <div class="col-sm-12 col-md-3">
-                    {{-- <form action="{{ route('search') }}" method="POST">
-                        @csrf
-                        <div class="input-group">
-                            <input type="search" name="search" id="searchInput"
-                                class="form-control form-control-lg @error('search') is-invalid @enderror"
-                                placeholder="Digite a Placa">
-                            <div class="input-group-append">
-                                <button class="btn btn-lg btn-default btn-block"><i class="fa fa-search"></i></button>
-                            </div>
-                        </div>
-                    </form> --}}
-                {{-- </div> --}}
             </div>
         </div>
         <div class="card-body">

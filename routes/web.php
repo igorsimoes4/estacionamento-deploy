@@ -144,7 +144,7 @@ Route::middleware(['auth.cookie'])->group(function () {
 | Rota Painel Administrativo Gerar PDF
 |--------------------------------------------------------------------------
 */
-
+        Route::get('/relatorios', [PDFController::class, 'showReports'])->name('reports.index');
         Route::get('/car-mounth', [PDFController::class, 'generatePDFCars'])->name('generatePDFCars');
         Route::get('/motorcycle-mounth', [PDFController::class, 'generatePDFMotorcycle'])->name('generatePDFMotorcycle');
         Route::get('/truck-mounth', [PDFController::class, 'generatePDFTruck'])->name('generatePDFTruck');

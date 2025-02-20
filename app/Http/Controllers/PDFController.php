@@ -44,4 +44,40 @@ class PDFController extends Controller
         $pdf = PDF::loadView("layouts.PDF.A4", ['cars' => $cars])->setPaper('a4', 'portrait');
         return $pdf->stream();
     }
+    public function generatePDFVehiclesFinal() {
+        $cars = Cars::where('status', 'finalizado')->get();
+        $pdf = PDF::loadView("layouts.PDF.A4", ['cars' => $cars])->setPaper('a4', 'portrait');
+        return $pdf->stream();
+    }
+    public function showReports() {
+        $reports = [
+            [
+                'name' => 'Relatório de Carros',
+                'description' => 'Lista todos os carros registrados nos últimos 30 dias.',
+                'route' => route('generatePDFCars'),
+            ],
+            [
+                'name' => 'Relatório de Motos',
+                'description' => 'Lista todas as motos registradas nos últimos 30 dias.',
+                'route' => route('generatePDFMotorcycle'),
+            ],
+            [
+                'name' => 'Relatório de Caminhonetes',
+                'description' => 'Lista todas as caminhonetes registradas nos últimos 30 dias.',
+                'route' => route('generatePDFTruck'),
+            ],
+            [
+                'name' => 'Relatório de Veículos Finalizados',
+                'description' => 'Lista todos os veículos com status finalizado.',
+                'route' => "1",
+
+            ],
+        ];
+
+        return view('reports.index', compact('reports'));
+    }
+
+
 }
+
+

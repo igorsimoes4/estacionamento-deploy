@@ -311,6 +311,14 @@ return [
             'url'  => 'painel/cars',
             'icon' => 'fa fa-fw fa-parking'
         ],
+        [
+            'header' => 'Relatórios',
+        ],
+        [
+            'text'    => 'Todos Relatórios',
+            'icon'    => 'fa fa-fw fa-folder',
+            'url'     => 'painel/relatorios',
+        ],
         ['header' => 'Configurações'],
         [
             'text'        => 'Informações do Estacionamento',
@@ -335,33 +343,6 @@ return [
                     'text' => 'Preços Caminhonetes',
                     'url'  => 'painel/settings/price-truck',
                     'icon' => 'fas fa-fw fa-truck-pickup',
-                ],
-            ],
-        ],
-        [
-            'header' => 'Relatórios',
-        ],
-        [
-            'text'    => 'Relatórios Mensais',
-            'icon'    => 'fa fa-fw fa-folder',
-            'submenu' => [
-                [
-                    'text' => 'Carros no Mês',
-                    'url'  => 'painel/car-mounth',
-                    'icon' => 'fa fa-fw fa-car',
-                    'target' => '_blank',
-                ],
-                [
-                    'text' => 'Motos no Mês',
-                    'url'  => 'painel/motorcycle-mounth',
-                    'icon' => 'fa fa-fw fa-motorcycle',
-                    'target' => '_blank',
-                ],
-                [
-                    'text' => 'Caminhonetes no Mês',
-                    'url'  => 'painel/truck-mounth',
-                    'icon' => 'fa fa-fw fa-truck-pickup',
-                    'target' => '_blank',
                 ],
             ],
         ],
