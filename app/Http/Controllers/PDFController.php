@@ -125,7 +125,7 @@ class PDFController extends Controller
             ],
         ];
 
-        return view('reports.index', compact('reports'));
+        return view('Reports.index', compact('reports'));
     }
 
 
