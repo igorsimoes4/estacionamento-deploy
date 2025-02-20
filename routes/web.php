@@ -31,7 +31,9 @@ Route::get('/', function () {
     return redirect(route('login'));
 });
 ///////
-Route::get('/login', function () {return view('login');});
+Route::get('/login', function () {
+    return view('login');
+});
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
@@ -139,14 +141,30 @@ Route::middleware(['auth.cookie'])->group(function () {
 
         Route::post('/cars', [CarsController::class, 'search'])->name('search');
 
-         /*
+        /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Gerar PDF
 |--------------------------------------------------------------------------
 */
+        // Rota para mostrar os relatórios disponíveis
         Route::get('/relatorios', [PDFController::class, 'showReports'])->name('reports.index');
-        Route::get('/car-mounth', [PDFController::class, 'generatePDFCars'])->name('generatePDFCars');
-        Route::get('/motorcycle-mounth', [PDFController::class, 'generatePDFMotorcycle'])->name('generatePDFMotorcycle');
-        Route::get('/truck-mounth', [PDFController::class, 'generatePDFTruck'])->name('generatePDFTruck');
+
+        // Rota para gerar o relatório de veículos (Carros) em PDF
+        Route::get('/car-mounth-pdf', [PDFController::class, 'generatePDFCars'])->name('generatePDFCars');
+
+        // Rota para gerar o relatório de veículos (Carros) em Excel
+        Route::get('/car-mounth-excel', [PDFController::class, 'generateExcelCars'])->name('generateExcelCars');
+
+        // Rota para gerar o relatório de motocicletas em PDF
+        Route::get('/motorcycle-mounth-pdf', [PDFController::class, 'generatePDFMotorcycle'])->name('generatePDFMotorcycle');
+
+        // Rota para gerar o relatório de motocicletas em Excel
+        Route::get('/motorcycle-mounth-excel', [PDFController::class, 'generateExcelMotorcycle'])->name('generateExcelMotorcycle');
+
+        // Rota para gerar o relatório de caminhões em PDF
+        Route::get('/truck-mounth-pdf', [PDFController::class, 'generatePDFTruck'])->name('generatePDFTruck');
+
+        // Rota para gerar o relatório de caminhões em Excel
+        Route::get('/truck-mounth-excel', [PDFController::class, 'generateExcelTruck'])->name('generateExcelTruck');
     });
 });
