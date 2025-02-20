@@ -95,15 +95,15 @@ class CarsController extends Controller
     public function index(Request $request)
     {
         $data = [];
-        
+
         // Pega o parâmetro de pesquisa da URL, se houver
         $search = $request->get('search', '');
-        
+
         // Realiza a busca filtrada por 'placa' com base na pesquisa, se houver
-        $cars = Cars::where('status', '=', null)
-                    ->where('placa', 'LIKE', '%' . $search . '%')
-                    ->orderBy('created_at', 'desc')
-                    ->paginate(8);
+        // $cars = Cars::where('status', '=', null)
+        //             ->where('placa', 'LIKE', '%' . $search . '%')
+        //             ->orderBy('created_at', 'desc');
+        $cars = Cars::orderBy('created_at', 'asc')->get();
 
         // Calcula o preço para cada carro
         foreach ($cars as $car) {
@@ -111,7 +111,7 @@ class CarsController extends Controller
         }
 
         // Preserva o parâmetro de pesquisa na URL da paginação
-        $cars->appends(['search' => $search]);
+        // $cars->appends(['search' => $search]);
 
         $data['cars'] = $cars;
         return view('cars', $data);
@@ -142,7 +142,7 @@ class CarsController extends Controller
         $search = $data['search'];
 
         // Realizar a lógica de pesquisa no seu modelo ou na fonte de dados desejada
-        $cars = Cars::where('placa', 'LIKE', '%' . $search . '%')->where('status', '=', null)->paginate(8);
+        $cars = Cars::where('placa', 'LIKE', '%' . $search . '%')->where('status', '=', null);
 
         if ($cars->isEmpty()) {
             Log::warning("Nenhum carro encontrado para a pesquisa: $search");
@@ -154,7 +154,7 @@ class CarsController extends Controller
         }
 
         // Preserva o parâmetro de pesquisa na URL de paginação
-        $cars->appends(['search' => $search]);
+        // $cars->appends(['search' => $search]);
 
         $data['cars'] = $cars;
 

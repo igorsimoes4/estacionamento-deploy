@@ -3,16 +3,24 @@
 @section('adminlte_css')
     <link rel="icon" type="image/png" href="{{ asset('img/LogoEstacionamento.png') }}">
     <link rel="stylesheet" href="{{ asset('fontawesome-free/css/all.min.css') }}" />
+    <link rel="stylesheet" href="//cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css" />
     @parent
 
     <style>
-        .wrapper, body, html {
+        /* Ajusta a altura mínima para evitar cortes na tela */
+        .wrapper,
+        body,
+        html {
             min-height: 130vh !important;
         }
-        body, html {
+
+        /* Define o fundo geral */
+        body,
+        html {
             background-color: #F4F6F9;
         }
-        /* Estilizaçbão do relógio digital */
+
+        /* Estilização do relógio digital */
         #clock-container {
             display: flex;
             justify-content: center;
@@ -37,7 +45,27 @@
             text-align: center;
         }
 
-        /* Responsividade para os botões */
+        /* Melhorias na tabela */
+        .table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .table thead {
+            background-color: #343a40;
+            color: #ffffff;
+            text-transform: uppercase;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .table tbody tr:hover {
+            background-color: #ddd;
+        }
+
+        /* Melhorias na responsividade */
         @media (max-width: 768px) {
             .btn-group {
                 display: flex;
@@ -65,8 +93,8 @@
                 display: block;
             }
 
-            /* Ajustes para o layout da tabela em telas pequenas */
-            .table th, .table td {
+            .table th,
+            .table td {
                 padding: 8px;
                 font-size: 14px;
             }
@@ -84,6 +112,31 @@
                 width: 100%;
             }
         }
+
+        /* Personalização do DataTables */
+        /* Caixa de pesquisa */
+        .dataTables_wrapper .dataTables_filter input {
+            border-radius: 5px;
+            padding: 5px;
+            border: 1px solid #ccc;
+        }
+
+        /* Paginação */
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            border-radius: 5px;
+            margin: 2px;
+            padding: 5px 10px;
+            border: 1px solid #cdd7e0;
+            background-color: #cdd7e0;
+            color: black;
+        }
+        /* Ajuste para botões de ação */
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+
     </style>
 @endsection
 
@@ -98,6 +151,7 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="//cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
     <script>
         @if ($errors->any())
             @foreach ($errors->all() as $error)
@@ -126,10 +180,19 @@
         relogio();
 
         // Inicializa o DataTable com responsividade
-        $(document).ready(function() {
-            $('#car-table').DataTable({
-                responsive: true
-            });
+        $('#car-table').DataTable({
+            responsive: true,
+            order: [
+                [3, "desc"],
+            ], // Ordena pela coluna de entrada (index 3)
+            columnDefs: [{
+                    type: 'datetime',
+                    targets: 3,
+                } // Define a coluna 3 como data/hora
+            ],
+            language: {
+                url: "https://cdn.datatables.net/plug-ins/1.10.21/i18n/Portuguese.json",
+            }
         });
     </script>
 @endsection
@@ -153,14 +216,14 @@
     <div class="card">
         <div class="card-header">
             <div class="row">
-                <div class="col-sm-12 col-md-3">
+                <div class="col">
                     <div id="clock-container">
                         <input disabled class="form-control form-control-lg" type="text" id="rel">
                     </div>
                 </div>
-                <div class="col-sm-12 col-md-6"></div>
+                {{-- <div class="col-sm-12 col-md-6"></div>
                 <div class="col-sm-12 col-md-3">
-                    <form action="{{ route('search') }}" method="POST">
+                    {{-- <form action="{{ route('search') }}" method="POST">
                         @csrf
                         <div class="input-group">
                             <input type="search" name="search" id="searchInput"
@@ -170,8 +233,8 @@
                                 <button class="btn btn-lg btn-default btn-block"><i class="fa fa-search"></i></button>
                             </div>
                         </div>
-                    </form>
-                </div>
+                    </form> --}}
+                {{-- </div> --}}
             </div>
         </div>
         <div class="card-body">
@@ -182,7 +245,7 @@
                             <th>Tipo</th>
                             <th>Modelo</th>
                             <th>Placa</th>
-                            <th>Hora Entrada</th>
+                            <th>Data Entrada</th>
                             <th>Total Estacionado</th>
                             <th>Preço</th>
                             <th>Ações</th>
@@ -200,25 +263,32 @@
                                 <td>{{ $car->tipo_car }}</td>
                                 <td>{{ $car->modelo }}</td>
                                 <td>{{ $car->placa }}</td>
-                                <td>{{ $car->entrada }}</td>
+                                <td data-order="{{ $car->created_at->format('Y-m-d H:i:s') }}">
+                                    {{ $car->created_at->format('d/m/Y H:i:s') }}
+                                </td>
                                 <td>
                                     @php
-                                        echo ($tempo->m ? "$tempo->m meses " : '') . 
-                                             ($tempo->d ? "$tempo->d dias " : '') . 
-                                             ($tempo->h ? "$tempo->h horas " : '') . 
-                                             ($tempo->i ? "$tempo->i minutos" : '1 minuto');
+                                        echo ($tempo->m ? "$tempo->m meses " : '') .
+                                            ($tempo->d ? "$tempo->d dias " : '') .
+                                            ($tempo->h ? "$tempo->h horas " : '') .
+                                            ($tempo->i ? "$tempo->i minutos" : '1 minuto');
                                     @endphp
                                 </td>
                                 <td>R$ {{ number_format($car->price, 2, ',', '') }}</td>
                                 <td>
-                                    <div class="row justify-content-center align-items-center flex-wrap flex-md-nowrap text-center text-md-left mb-2 mb-md-0 flex-grow-1" style="gap:10px;">
-                                        <a class="btn btn-sm btn-warning modal-btn" data-id="{{ $car->id }}" data-toggle="modal" data-target="#myModal">
+                                    <div class="row justify-content-center align-items-center flex-wrap flex-md-nowrap text-center text-md-left mb-2 mb-md-0 flex-grow-1"
+                                        style="gap:10px;">
+                                        <a class="btn btn-sm btn-warning modal-btn" data-id="{{ $car->id }}"
+                                            data-toggle="modal" data-target="#myModal">
                                             <i class="fas fa-eye"></i> Visualizar
                                         </a>
-                                        <a class="btn btn-sm btn-danger" href="#" onclick="event.preventDefault(); document.getElementById('delete-form-{{ $car->id }}').submit();">
+                                        <a class="btn btn-sm btn-danger" href="#"
+                                            onclick="event.preventDefault(); document.getElementById('delete-form-{{ $car->id }}').submit();">
                                             <i class="fas fa-edit"></i> Finalizar
                                         </a>
-                                        <form id="delete-form-{{ $car->id }}" action="{{ route('cars.destroy', $car->id) }}" method="POST" style="display: none;">
+                                        <form id="delete-form-{{ $car->id }}"
+                                            action="{{ route('cars.destroy', $car->id) }}" method="POST"
+                                            style="display: none;">
                                             @csrf
                                             @method('DELETE')
                                         </form>
@@ -229,11 +299,6 @@
                         @endforeach
                     </tbody>
                 </table>
-            </div>
-        </div>        
-        <div class="card-footer">
-            <div style="display: flex; justify-content:flex-end;padding: 0 20px 0 20px;">
-                {{ $cars->appends(['search' => request('search')])->links('pagination::bootstrap-4') }}
             </div>
         </div>
     </div>
