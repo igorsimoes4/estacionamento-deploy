@@ -18,13 +18,13 @@
 @section('title', 'Nova Página')
 
 @section('content_header')
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item" aria-current="page"><a href="/painel"> Home</a></li>
-        <li class="breadcrumb-item" aria-current="page"><a href="/painel/cars" >Carros Estacionados</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Adicionar Carro</li>
-    </ol>
-</nav>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page"><a href="/painel"> Home</a></li>
+            <li class="breadcrumb-item" aria-current="page"><a href="/painel/cars">Carros Estacionados</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Adicionar Carro</li>
+        </ol>
+    </nav>
     <h1 style="display: flex; justify-content:space-between; padding: 0 20px 0 20px; margin-bottom:10px;">
         Adicionar Veículo
 
@@ -111,15 +111,13 @@
             </div>
         @endif
         <div class="card-body">
-            <x-create.form />
+            <x-cars.create.form />
         </div>
 
     </div>
 
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/3.3.4/jquery.inputmask.bundle.min.js">
-
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/3.3.4/jquery.inputmask.bundle.min.js"></script>
     <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js"></script>
 
 
