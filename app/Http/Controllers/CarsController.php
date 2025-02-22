@@ -25,57 +25,59 @@ class CarsController extends Controller
         $saida = Carbon::now();
         $tempo = $saida->diff($entrada);
 
-        // Determinar o tipo de veículo e buscar os preços correspondentes
-        switch ($car->tipo_car) {
-            case 'carro':
-                $price = PriceCar::first();
-                break;
-            case 'moto':
-                $price = PriceMotorcycle::first();
-                break;
-            case 'caminhonete':
-                $price = PriceTruck::first();
-                break;
-            default:
-                // Lógica para lidar com tipos de veículos desconhecidos
-                break;
+        // Determinar o modelo de preço com base no tipo do veículo
+        $precos = [
+            'carro' => PriceCar::first(),
+            'moto' => PriceMotorcycle::first(),
+            'caminhonete' => PriceTruck::first()
+        ];
+
+        if (!isset($precos[$car->tipo_car])) {
+            Log::warning("Tipo de veículo desconhecido: {$car->tipo_car}");
+            return 0; // Pode lançar uma exceção ou definir um valor padrão
         }
 
-        // Calcular o valor com base no tempo e nos preços
-        $valor = $this->calculatePrice($tempo, $price, $id);
+        $price = $precos[$car->tipo_car];
 
-        return $valor;
+        // Calcular o valor com base no tempo e nos preços
+        return $this->calculatePrice($tempo, $price, $id);
     }
 
     private function calculatePrice($tempo, $price, $id)
     {
         $valor = 0;
+
+        // Tempo de permanência
         $minuto = $tempo->i;
         $hora = $tempo->h;
         $dia = $tempo->d;
         $mes = $tempo->m;
 
+        // Tarifas
         $valorMinimo = $price->valorMinimo;
         $valorHora = $price->valorHora;
         $valorDiaria = $price->valorDiaria;
         $taxaMensal = $price->taxaMensal;
         $taxaAdicional = $price->taxaAdicional;
 
-        // Taxas fixas que sempre são adicionadas
+        // Se o tempo for maior que um mês, aplica taxa mensal
         if ($mes >= 1) {
-            $valor += ($taxaMensal * $mes);
+            $valor += $mes * $taxaMensal;
         }
-        // Cálculo do valor com base nos dias e horas
+
+        // Se passou de um dia, cobra diárias e considera horas adicionais
         if ($dia >= 1) {
-            $valor += ($valorDiaria * $dia);
-            if ($hora >= 1) {
-                $valor += ($hora > 1) ? (($hora - 1) * $valorHora) + $taxaAdicional : $valorHora;
-            } else {
-                $valor += $valorHora;
+            $valor += $dia * $valorDiaria;
+
+            // Se houver horas adicionais, cobra a taxa de hora proporcional
+            if ($hora > 0) {
+                $valor += ($hora * $valorHora) + ($hora > 1 ? $taxaAdicional : 0);
             }
-        } else {
+        }
+        // Se não passou de um dia, cobra por hora ou tarifa mínima
+        else {
             if ($hora >= 1) {
-                $valor += ($hora > 1) ? (($hora - 1) * $valorHora) + $taxaAdicional : $valorHora;
+                $valor += ($hora * $valorHora) + ($hora > 1 ? $taxaAdicional : 0);
             } elseif ($minuto <= 30) {
                 $valor += $valorMinimo;
             } else {
@@ -83,9 +85,12 @@ class CarsController extends Controller
             }
         }
 
-        Log::info("Cálculo de preço para o carro $id: tempo de permanência - dias: $dia, horas: $hora, minutos: $minuto");
+        Log::info("Cálculo de preço para o veículo $id: $mes mês(es), $dia dia(s), $hora hora(s), $minuto minuto(s) - Total: R$ $valor");
+
         return $valor;
     }
+
+
 
     /**
      * Display a listing of the resource.

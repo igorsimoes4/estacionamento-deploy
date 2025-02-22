@@ -4,132 +4,154 @@ namespace App\Http\Controllers;
 
 use App\Models\Cars;
 use App\Models\Settings;
+use App\Models\Payments;
+use App\Models\Subscribers;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Carbon\Carbon as Carbon;
 use Illuminate\Http\Request;
 
 class PDFController extends Controller
 {
-    public function generatePDFCars() {
+    /**
+     * Gera um PDF utilizando uma view e dados dinâmicos, incluindo o título do relatório.
+     *
+     * @param mixed  $data        Dados a serem passados para a view.
+     * @param string $view        Caminho da view.
+     * @param string $orientation Orientação do papel.
+     * @param string $reportTitle Título dinâmico do relatório.
+     * @param string $dataKey     Nome da chave para os dados na view (padrão: 'cars').
+     *
+     * @return \Barryvdh\DomPDF\PDF
+     */
+    private function generatePDF($data, $view = "layouts.PDF.A4", $orientation = "landscape", $reportTitle = '', $dataKey = 'cars')
+    {
+        $estacionamento = Settings::find(1);
+        $pdf = PDF::loadView($view, [
+            $dataKey       => $data,
+            'estacionamento' => $estacionamento,
+            'reportTitle'  => $reportTitle,
+        ])->setPaper('A4', $orientation);
+        return $pdf->stream();
+    }
 
-        $thirtyDaysAgo = Carbon::now()->subDays(30);
+    public function generatePDFCars()
+    {
         $cars = Cars::where('tipo_car', 'carro')
-        ->where('created_at', '>=', $thirtyDaysAgo)
-        ->orderBy('created_at', 'desc')
-        ->get();
-
-        $estacionamento = Settings::find(1);
-
-
-        $pdf = PDF::loadView("layouts.PDF.A4", ['cars' => $cars, 'estacionamento' => $estacionamento])->setPaper('a4', 'portrait');
-        return $pdf->stream();
+            ->where('created_at', '>=', Carbon::now()->subDays(30))
+            ->where('status', null)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return $this->generatePDF($cars, 'layouts.PDF.A4', 'portrait', 'Relatório de Carros');
     }
 
-    public function generatePDFMotorcycle() {
-
-        $thirtyDaysAgo = Carbon::now()->subDays(30);
-        $cars = Cars::where('created_at', '>=', $thirtyDaysAgo)
-        ->where('tipo_car', 'moto')
-        ->orderBy('created_at', 'desc')
-        ->get();
-
-        $estacionamento = Settings::find(1);
-
-        $pdf = PDF::loadView("layouts.PDF.A4", ['cars' => $cars, 'estacionamento' => $estacionamento])->setPaper('a4', 'portrait');
-        return $pdf->stream();
+    public function generatePDFMotorcycle()
+    {
+        $cars = Cars::where('tipo_car', 'moto')
+            ->where('created_at', '>=', Carbon::now()->subDays(30))
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return $this->generatePDF($cars, 'layouts.PDF.A4', 'portrait', 'Relatório de Motos');
     }
 
-    public function generatePDFTruck() {
-
-        $thirtyDaysAgo = Carbon::now()->subDays(30);
-        $cars = Cars::where('created_at', '>=', $thirtyDaysAgo)
-        ->where('tipo_car', 'caminhonete')
-        ->orderBy('created_at', 'desc')
-        ->get();
-
-        $estacionamento = Settings::find(1);
-
-        $pdf = PDF::loadView("layouts.PDF.A4", ['cars' => $cars, 'estacionamento' => $estacionamento])->setPaper('a4', 'portrait');
-        return $pdf->stream();
+    public function generatePDFTruck()
+    {
+        $cars = Cars::where('tipo_car', 'caminhonete')
+            ->where('created_at', '>=', Carbon::now()->subDays(30))
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return $this->generatePDF($cars, 'layouts.PDF.A4', 'portrait', 'Relatório de Caminhonetes');
     }
-    public function generatePDFVehiclesFinal() {
+
+    public function generatePDFFinishedVehicles()
+    {
         $cars = Cars::where('status', 'finalizado')->get();
+        return $this->generatePDF($cars, 'layouts.PDF.A4', 'landscape', 'Relatório de Veículos Finalizados');
+    }
+
+    public function generatePDFClientVehicles($client_id)
+    {
+        $cars = Cars::where('client_id', $client_id)->get();
+        return $this->generatePDF($cars, 'layouts.PDF.A4', 'portrait', 'Relatório de Veículos por Cliente');
+    }
+
+    public function generatePDFEntryExit()
+    {
+        $cars = Cars::where('created_at', '>=', Carbon::now()->subDays(30))
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return $this->generatePDF($cars, 'layouts.PDF.A4', 'landscape', 'Relatório de Entrada e Saída de Veículos');
+    }
+
+    public function generatePDFFinancial()
+    {
+        $payments = Payments::where('created_at', '>=', Carbon::now()->subDays(30))->get();
         $estacionamento = Settings::find(1);
-        $pdf = PDF::loadView("layouts.PDF.A4", ['cars' => $cars, 'estacionamento' => $estacionamento])->setPaper('a4', 'portrait');
+        $pdf = PDF::loadView("layouts.PDF.Financial", [
+            'payments'       => $payments,
+            'estacionamento' => $estacionamento,
+            'reportTitle'    => 'Relatório Financeiro'
+        ])->setPaper('a4', 'portrait');
         return $pdf->stream();
     }
-    public function showReports() {
+
+    public function generatePDFActiveSubscribers()
+    {
+        $subscribers = Subscribers::where('created_at', '>=', Carbon::now()->subDays(30))->get();
+        $estacionamento = Settings::find(1);
+        $pdf = PDF::loadView("layouts.PDF.Subscribers", [
+            'subscribers'    => $subscribers,
+            'estacionamento' => $estacionamento,
+            'reportTitle'    => 'Relatório de Mensalistas Ativos'
+        ])->setPaper('a4', 'portrait');
+        return $pdf->stream();
+    }
+
+    public function generatePDFParkingOccupancy()
+    {
+        $occupancy = Cars::where('created_at', '>=', Carbon::now()->subDays(30))->count();
+        $estacionamento = Settings::find(1);
+        $pdf = PDF::loadView("layouts.PDF.Occupancy", [
+            'occupancy'      => $occupancy,
+            'estacionamento' => $estacionamento,
+            'reportTitle'    => 'Relatório de Ocupação do Estacionamento'
+        ])->setPaper('a4', 'portrait');
+        return $pdf->stream();
+    }
+
+    public function generatePDFCurrentlyParked()
+    {
+        $cars = Cars::whereNull('checkout_time')->get();
+        return $this->generatePDF($cars, 'layouts.PDF.A4', 'portrait', 'Relatório de Veículos Estacionados no Momento');
+    }
+
+    public function generatePDFViolations()
+    {
+        $violations = Cars::where('status', 'infração')->get();
+        $estacionamento = Settings::find(1);
+        $pdf = PDF::loadView("layouts.PDF.Violations", [
+            'violations'     => $violations,
+            'estacionamento' => $estacionamento,
+            'reportTitle'    => 'Relatório de Infrações ou Ocorrências'
+        ])->setPaper('a4', 'portrait');
+        return $pdf->stream();
+    }
+
+    public function showReports()
+    {
         $reports = [
-            [
-                'name' => 'Relatório de Carros',
-                'description' => 'Lista todos os carros registrados nos últimos 30 dias.',
-                'route' => route('generatePDFCars'),
-            ],
-            [
-                'name' => 'Relatório de Motos',
-                'description' => 'Lista todas as motos registradas nos últimos 30 dias.',
-                'route' => route('generatePDFMotorcycle'),
-            ],
-            [
-                'name' => 'Relatório de Caminhonetes',
-                'description' => 'Lista todas as caminhonetes registradas nos últimos 30 dias.',
-                'route' => route('generatePDFTruck'),
-            ],
-            [
-                'name' => 'Relatório de Veículos Finalizados',
-                'description' => 'Lista todos os veículos com status finalizado.',
-                // 'route' => route('generatePDFFinishedVehicles'),
-                'route' => "#",
-            ],
-            [
-                'name' => 'Relatório de Veículos por Cliente',
-                'description' => 'Lista todos os veículos cadastrados para um determinado cliente.',
-                // 'route' => route('generatePDFClientVehicles'),
-                'route' => "#",
-            ],
-            [
-                'name' => 'Relatório de Entrada e Saída de Veículos',
-                'description' => 'Mostra um histórico detalhado de entrada e saída de veículos nos últimos 30 dias.',
-                // 'route' => route('generatePDFEntryExit'),
-                'route' => "#",
-            ],
-            [
-                'name' => 'Relatório Financeiro',
-                'description' => 'Resumo das receitas do estacionamento nos últimos 30 dias, incluindo pagamentos avulsos e mensalidades.',
-                // 'route' => route('generatePDFFinancial'),
-                'route' => "#",
-            ],
-            [
-                'name' => 'Relatório de Mensalistas Ativos',
-                'description' => 'Lista todos os clientes com planos de mensalidade ativos.',
-                // 'route' => route('generatePDFActiveSubscribers'),
-                'route' => "#",
-            ],
-            [
-                'name' => 'Relatório de Ocupação do Estacionamento',
-                'description' => 'Mostra a média diária de ocupação do estacionamento nos últimos 30 dias.',
-                // 'route' => route('generatePDFParkingOccupancy'),
-                'route' => "#",
-            ],
-            [
-                'name' => 'Relatório de Veículos Estacionados no Momento',
-                'description' => 'Exibe a lista de todos os veículos que estão atualmente no estacionamento.',
-                // 'route' => route('generatePDFCurrentlyParked'),
-                'route' => "#",
-            ],
-            [
-                'name' => 'Relatório de Infrações ou Ocorrências',
-                'description' => 'Lista todas as ocorrências registradas no estacionamento, como estadia excedida ou veículos sem pagamento.',
-                // 'route' => route('generatePDFViolations'),
-                'route' => "#",
-            ],
+            ['name' => 'Relatório de Carros', 'description' => 'Lista todos os carros registrados nos últimos 30 dias.', 'route' => route('generatePDFCars')],
+            ['name' => 'Relatório de Motos', 'description' => 'Lista todas as motos registradas nos últimos 30 dias.', 'route' => route('generatePDFMotorcycle')],
+            ['name' => 'Relatório de Caminhonetes', 'description' => 'Lista todas as caminhonetes registradas nos últimos 30 dias.', 'route' => route('generatePDFTruck')],
+            ['name' => 'Relatório de Veículos Finalizados', 'description' => 'Lista todos os veículos com status finalizado.', 'route' => route('generatePDFFinishedVehicles')],
+            ['name' => 'Relatório de Veículos por Cliente', 'description' => 'Lista todos os veículos cadastrados para um determinado cliente.', 'route' => route('generatePDFClientVehicles', ['client_id' => 1])],
+            ['name' => 'Relatório de Entrada e Saída de Veículos', 'description' => 'Histórico detalhado de entrada e saída de veículos nos últimos 30 dias.', 'route' => route('generatePDFEntryExit')],
+            ['name' => 'Relatório Financeiro', 'description' => 'Resumo das receitas do estacionamento nos últimos 30 dias, incluindo pagamentos avulsos e mensalidades.', 'route' => route('generatePDFFinancial')],
+            ['name' => 'Relatório de Mensalistas Ativos', 'description' => 'Lista dos clientes com planos de mensalidade ativos.', 'route' => route('generatePDFActiveSubscribers')],
+            ['name' => 'Relatório de Ocupação do Estacionamento', 'description' => 'Média diária de ocupação do estacionamento nos últimos 30 dias.', 'route' => route('generatePDFParkingOccupancy')],
+            ['name' => 'Relatório de Veículos Estacionados no Momento', 'description' => 'Lista dos veículos que estão atualmente no estacionamento.', 'route' => route('generatePDFCurrentlyParked')],
+            ['name' => 'Relatório de Infrações ou Ocorrências', 'description' => 'Ocorrências registradas, como estadia excedida ou veículos sem pagamento.', 'route' => route('generatePDFViolations')],
         ];
 
         return view('Reports.index', compact('reports'));
     }
-
-
-
 }
-
-

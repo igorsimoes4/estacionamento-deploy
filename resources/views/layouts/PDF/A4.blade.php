@@ -1,98 +1,99 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório de Veículos</title>
-    <!-- Link para o CSS do Bootstrap -->
+    <title>Relatório de Veículos - {{ $estacionamento->nome_da_empresa }}</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Configuração para A4 */
         @page {
-            size: A4;
-            margin: 10mm;
+            margin: 10mm 15mm 10mm 0mm;
+            background-color: #fff;
         }
 
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
-            color: #333;
+            background-color: #fff;
+            color: #343a40;
         }
 
-        .container-fluid {
+        .container {
+            background-color: #fff;
             max-width: 100%;
-            margin: 0 auto;
+            padding: 30px;
+            margin: 20px auto;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
-        .header, .footer {
+        header {
             text-align: center;
-            padding: 10px 0;
-            background-color: #f8f9fa;
-            border-radius: 5px;
+            margin-bottom: 20px;
         }
 
-        .header h2 {
+        header h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        header p {
             margin: 0;
-            font-size: 24px;
-        }
-
-        .header p {
             font-size: 14px;
             color: #6c757d;
         }
 
-        .footer {
-            font-size: 12px;
-            color: #6c757d;
+        header h4 {
             margin-top: 20px;
+            font-size: 20px;
+            font-weight: 600;
         }
 
         .table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-
-        .table th, .table td {
-            word-wrap: break-word;
-            text-align: center;
-            vertical-align: middle;
-            padding: 12px;
-            border: 1px solid #dee2e6;
+            margin-bottom: 20px;
         }
 
         .table th {
-            background-color: #343a40;
+            background-color: #007bff;
             color: #fff;
+            font-size: 16px;
+            vertical-align: middle;
+            text-align: center;
         }
 
         .table td {
-            background-color: #f8f9fa;
+            font-size: 14px;
+            vertical-align: middle;
+            text-align: center;
         }
 
-        /* Ajustes de impressão */
+        footer {
+            text-align: center;
+            font-size: 13px;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+            padding-top: 10px;
+            margin-top: 20px;
+        }
+
         @media print {
             body {
-                margin: 0;
-                padding: 0;
+                background-color: #fff;
                 font-size: 12px;
             }
 
-            .container-fluid {
-                width: 100%;
-                max-width: 100%;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                text-align: center;
+            .container {
+                box-shadow: none;
+                margin: 0;
+                padding: 15px;
             }
 
-            .footer {
-                font-size: 10px;
-                color: #6c757d;
-                position: absolute;
+            footer {
+                position: fixed;
                 bottom: 10mm;
                 left: 10mm;
                 right: 10mm;
@@ -100,42 +101,61 @@
         }
     </style>
 </head>
+
 <body>
-    <div class="container-fluid">
-        <!-- Cabeçalho do Estacionamento -->
-        <div class="header">
-            <h2>{{$estacionamento->nome_da_empresa}}</h2>
-            <p>Endereço: {{$estacionamento->endereco}}, {{$estacionamento->cidade}}, {{$estacionamento->estado}}</p>
-            <p>Telefone: {{$estacionamento->telefone_da_empresa}}</p>
-            <p>Email: {{$estacionamento->email_da_empresa}}</p>
-            <p>Relatório de Veículos</p>
+    <div class="container">
+        <header>
+            <h2>{{ $estacionamento->nome_da_empresa }}</h2>
+            <p>Endereço: {{ $estacionamento->endereco }}, {{ $estacionamento->cidade }}, {{ $estacionamento->estado }}
+            </p>
+            <p>Telefone: {{ $estacionamento->telefone_da_empresa }} | Email: {{ $estacionamento->email_da_empresa }}</p>
+            <h4>{{ $reportTitle }}</h4>
             <p>Gerado em: {{ date('d/m/Y H:i') }}</p>
-        </div>
+        </header>
 
-        <!-- Tabela de Dados -->
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>Modelo</th>
-                    <th>Placa</th>
-                    <th>Data de Entrada</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($cars as $car)
+        <main>
+            <table class="table table-bordered table-striped">
+                <thead>
                     <tr>
-                        <td>{{ $car->modelo }}</td>
-                        <td>{{ $car->placa }}</td>
-                        <td>{{ $car->created_at->format('d/m/Y H:i') }}</td>
+                        <th>Modelo</th>
+                        <th>Placa</th>
+                        <th>Data de Entrada</th>
+                        @if ($cars->contains(fn($car) => $car->status === 'finalizado'))
+                            <th>Data de Saída</th>
+                            <th>Preço</th>
+                        @endif
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @php $totalPrice = 0; @endphp
+                    @foreach ($cars as $car)
+                        <tr>
+                            <td>{{ $car->modelo }}</td>
+                            <td>{{ $car->placa }}</td>
+                            <td>{{ $car->created_at->format('d/m/Y H:i') }}</td>
+                            @if ($car->status === 'finalizado')
+                                <td>{{ $car->updated_at->format('d/m/Y H:i') }}</td>
+                                <td>R$ {{ number_format($car->preco, 2, ',', '.') }}</td>
+                                @php $totalPrice += $car->preco; @endphp
+                            @endif
+                        </tr>
+                    @endforeach
+                </tbody>
+                @if ($cars->contains(fn($car) => $car->status === 'finalizado'))
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-right"><strong>Total:</strong></td>
+                            <td><strong>R$ {{ number_format($totalPrice, 2, ',', '.') }}</strong></td>
+                        </tr>
+                    </tfoot>
+                @endif
+            </table>
+        </main>
 
-        <!-- Rodapé -->
-        <div class="footer">
+        <footer>
             <p>Relatório gerado automaticamente pelo sistema.</p>
-        </div>
+        </footer>
     </div>
 </body>
+
 </html>

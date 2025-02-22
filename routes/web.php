@@ -166,5 +166,20 @@ Route::middleware(['auth.cookie'])->group(function () {
 
         // Rota para gerar o relatório de caminhões em Excel
         Route::get('/truck-mounth-excel', [PDFController::class, 'generateExcelTruck'])->name('generateExcelTruck');
+
+        // Rota para gerar o relatório de veículos finalizados em PDF
+        Route::get('/finished-vehicles-pdf', [PDFController::class, 'generatePDFFinishedVehicles'])->name('generatePDFFinishedVehicles');
+
+        Route::get('/relatorios/carros', [PDFController::class, 'generatePDFCars'])->name('generatePDFCars');
+        Route::get('/relatorios/motos', [PDFController::class, 'generatePDFMotorcycle'])->name('generatePDFMotorcycle');
+        Route::get('/relatorios/caminhonetes', [PDFController::class, 'generatePDFTruck'])->name('generatePDFTruck');
+        Route::get('/relatorios/veiculos-finalizados', [PDFController::class, 'generatePDFFinishedVehicles'])->name('generatePDFFinishedVehicles');
+        Route::get('/relatorios/veiculos-cliente/{client_id}', [PDFController::class, 'generatePDFClientVehicles'])->name('generatePDFClientVehicles');
+        Route::get('/relatorios/entrada-saida', [PDFController::class, 'generatePDFEntryExit'])->name('generatePDFEntryExit');
+        Route::get('/relatorios/financeiro', [PDFController::class, 'generatePDFFinancial'])->name('generatePDFFinancial');
+        Route::get('/relatorios/mensalistas-ativos', [PDFController::class, 'generatePDFActiveSubscribers'])->name('generatePDFActiveSubscribers');
+        Route::get('/relatorios/ocupacao', [PDFController::class, 'generatePDFParkingOccupancy'])->name('generatePDFParkingOccupancy');
+        Route::get('/relatorios/veiculos-estacionados', [PDFController::class, 'generatePDFCurrentlyParked'])->name('generatePDFCurrentlyParked');
+        Route::get('/relatorios/infracoes', [PDFController::class, 'generatePDFViolations'])->name('generatePDFViolations');
     });
 });
