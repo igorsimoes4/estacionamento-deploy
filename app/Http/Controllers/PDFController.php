@@ -152,6 +152,6 @@ class PDFController extends Controller
             ['name' => 'Relatório de Infrações ou Ocorrências', 'description' => 'Ocorrências registradas, como estadia excedida ou veículos sem pagamento.', 'route' => route('generatePDFViolations')],
         ];
 
-        return view('Reports.layouts.index', compact('reports'));
+        return view('Reports.index', compact('reports'));
     }
 }
