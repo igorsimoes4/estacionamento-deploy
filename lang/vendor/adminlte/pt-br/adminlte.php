@@ -13,7 +13,7 @@ return [
     'i_already_have_a_membership' => 'Já sou um membro',
     'sign_in' => 'Entrar',
     'log_out' => 'Sair',
-    'toggle_navigation' => 'Trocar navegação',
+    'toggle_navigation' => 'Trocar a navegação',
     'login_message' => 'Entre para iniciar uma nova sessão',
     'register_message' => 'Registrar um novo membro',
     'password_reset_message' => 'Recuperar senha',

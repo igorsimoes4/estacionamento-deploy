@@ -7,7 +7,7 @@ return [
     'pages' => 'Página',
     'account_settings' => 'Configurações da Conta',
     'profile' => 'Perfil',
-    'change_password' => 'Mudar Senha',
+    'change_password' => 'Mudar a Senha',
     'multilevel' => 'Multinível',
     'level_one' => 'Nível 1',
     'level_two' => 'Nível 2',
