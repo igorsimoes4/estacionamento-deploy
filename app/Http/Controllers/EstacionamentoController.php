@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cars;
-use App\Models\Estacionamento;
 use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -93,6 +92,20 @@ class EstacionamentoController extends Controller
         $data['car_parking'] = $car_parking;
         $data['moto_parking'] = $moto_parking;
         $data['caminhonete_parking'] = $caminhonete_parking;
+
+        // Definir número total de vagas por tipo de veículo
+        $total_car_vagas = 50; // Exemplo de número total de vagas para carros
+        $total_moto_vagas = 30; // Exemplo de número total de vagas para motos
+        $total_caminhonete_vagas = 20; // Exemplo de número total de vagas para caminhonetes
+
+        // Contagem de mensalistas
+        // $monthly_members = DB::table('mensalistas')->count();
+        $monthly_members = 10; // Exemplo de número total de mensalistas
+
+        $data['total_car_vagas'] = $total_car_vagas;
+        $data['total_moto_vagas'] = $total_moto_vagas;
+        $data['total_caminhonete_vagas'] = $total_caminhonete_vagas;
+        $data['monthly_members'] = $monthly_members;
 
         return view('home', compact('data'));
     }

@@ -1,30 +1,23 @@
 @extends('adminlte::page')
 
 @section('adminlte_css')
-    <!-- Adiciona o favicon -->
     <link rel="icon" type="image/png" href="{{ asset('img/LogoEstacionamento.png') }}">
-
-    <!-- Estilos personalizados -->
     <link rel="stylesheet" href="{{ asset('fontawesome-free/css/all.min.css') }}" />
     <style>
-        /* Garantir que o layout ocupe 100% da altura da tela */
         html,
         body {
             height: 100%;
             margin: 0;
         }
 
-        /* O conteúdo principal deve ocupar o espaço restante da tela */
         .content-wrapper {
             min-height: calc(100vh - 56px);
-            /* 56px é a altura do cabeçalho padrão do AdminLTE */
         }
 
         .content {
             padding: 20px;
         }
 
-        /* Ajustar o tamanho dos gráficos */
         .chart-container {
             width: 100%;
             height: 400px;
@@ -35,9 +28,6 @@
             height: 100% !important;
         }
     </style>
-
-
-
     @parent
 @endsection
 
@@ -58,6 +48,7 @@
                 <div class="inner">
                     <h3>{{ $data['car_parking'] }}</h3>
                     <p>Carros Estacionados</p>
+                    <p>{{ $data['total_car_vagas'] - $data['car_parking'] }} vagas restantes</p>
                 </div>
                 <div class="icon">
                     <i class="fa fa-fw fa-car"></i>
@@ -70,6 +61,7 @@
                 <div class="inner">
                     <h3>{{ $data['moto_parking'] }}</h3>
                     <p>Motos Estacionadas</p>
+                    <p>{{ $data['total_moto_vagas'] - $data['moto_parking'] }} vagas restantes</p>
                 </div>
                 <div class="icon">
                     <i class="fa fa-fw fa-motorcycle"></i>
@@ -82,9 +74,25 @@
                 <div class="inner">
                     <h3>{{ $data['caminhonete_parking'] }}</h3>
                     <p>Caminhonetes Estacionadas</p>
+                    <p>{{ $data['total_caminhonete_vagas'] - $data['caminhonete_parking'] }} vagas restantes</p>
                 </div>
                 <div class="icon">
                     <i class="fa fa-fw fa-truck-pickup"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adicionar informações sobre mensalistas -->
+    <div class="row">
+        <div class="col-lg-4 col-md-6 col-sm-12">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3>{{ $data['monthly_members'] }}</h3>
+                    <p>Mensalistas Cadastrados</p>
+                </div>
+                <div class="icon">
+                    <i class="fa fa-fw fa-users"></i>
                 </div>
             </div>
         </div>
@@ -118,7 +126,6 @@
 @endsection
 
 @section('js')
-    <!-- Inclusão de scripts -->
     <script src="{{ asset('overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
     <script src="{{ asset('popper/popper.min.js') }}"></script>
     <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
@@ -126,7 +133,7 @@
     <script src="{{ asset('js/jquery.min.js') }}"></script>
 
     <script>
-        // Função para gerar cores aleatórias mais sóbrias
+        // Função para gerar cores aleatórias
         function getRandomColors(numColors) {
             let colors = [];
             for (let i = 0; i < numColors; i++) {
@@ -138,7 +145,7 @@
             return colors;
         }
 
-        // Gráfico de Rosca (Doughnut) para Veículos mais Estacionados no Mês
+        // Gráfico de Rosca para Veículos mais Estacionados no Mês
         var ctx = document.getElementById('carDoughnut').getContext('2d');
         var carDoughnut = new Chart(ctx, {
             type: 'doughnut',
@@ -193,8 +200,8 @@
             backgroundColor: `rgba(${255 - (index * 50)}, ${99 + (index * 50)}, 132, 0.2)`,
             borderColor: `rgba(${255 - (index * 50)}, ${99 + (index * 50)}, 132, 1)`,
             borderWidth: 2,
-            fill: true, // Preencher a área abaixo da linha
-            tension: 0.4 // Deixar a linha suavizada
+            fill: true,
+            tension: 0.4
         }));
 
         var myLineChart = new Chart(ctx2, {
@@ -261,7 +268,7 @@
                     }
                 },
                 animation: {
-                    duration: 1000, // Suavizar a animação
+                    duration: 1000,
                     easing: 'easeInOutQuart'
                 }
             }
