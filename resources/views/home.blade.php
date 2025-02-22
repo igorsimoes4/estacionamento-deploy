@@ -133,14 +133,15 @@
     <script src="{{ asset('js/jquery.min.js') }}"></script>
 
     <script>
-        // Função para gerar cores aleatórias
-        function getRandomColors(numColors) {
-            let colors = [];
+        // Função para gerar cores suaves
+        function getSoftColors(numColors) {
+            const colors = [];
+            const colorPalette = [
+                'rgba(255, 99, 132, 0.5)', 'rgba(54, 162, 235, 0.5)', 'rgba(255, 206, 86, 0.5)',
+                'rgba(75, 192, 192, 0.5)', 'rgba(153, 102, 255, 0.5)', 'rgba(255, 159, 64, 0.5)'
+            ];
             for (let i = 0; i < numColors; i++) {
-                let r = Math.floor(Math.random() * 150) + 100;
-                let g = Math.floor(Math.random() * 150) + 100;
-                let b = Math.floor(Math.random() * 150) + 100;
-                colors.push(`rgba(${r}, ${g}, ${b}, 0.7)`);
+                colors.push(colorPalette[i % colorPalette.length]);
             }
             return colors;
         }
@@ -153,32 +154,26 @@
                 labels: {!! json_encode($data['CarLabels']) !!},
                 datasets: [{
                     data: {!! json_encode($data['CarValues']) !!},
-                    backgroundColor: getRandomColors({{ count($data['CarLabels']) }}),
-                    borderColor: getRandomColors({{ count($data['CarLabels']) }}).map(color => color
-                        .replace('0.7', '1')),
-                    borderWidth: 2
+                    backgroundColor: getSoftColors({{ count($data['CarLabels']) }}),
+                    borderColor: getSoftColors({{ count($data['CarLabels']) }}).map(color => color.replace(
+                        '0.5', '1')),
+                    borderWidth: 3
                 }]
             },
             options: {
                 responsive: true,
                 plugins: {
                     legend: {
-                        display: true,
                         position: 'top',
                         labels: {
                             font: {
                                 size: 14,
                                 weight: 'bold'
                             },
-                            color: 'rgba(0, 0, 0, 0.7)'
+                            color: '#555'
                         }
                     },
                     tooltip: {
-                        callbacks: {
-                            label: function(tooltipItem) {
-                                return tooltipItem.label + ': ' + tooltipItem.raw;
-                            }
-                        },
                         backgroundColor: 'rgba(0, 0, 0, 0.7)',
                         titleFont: {
                             size: 16,
@@ -186,6 +181,11 @@
                         },
                         bodyFont: {
                             size: 14
+                        },
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw;
+                            }
                         }
                     }
                 }
@@ -201,7 +201,8 @@
             borderColor: `rgba(${255 - (index * 50)}, ${99 + (index * 50)}, 132, 1)`,
             borderWidth: 2,
             fill: true,
-            tension: 0.4
+            tension: 0.4,
+            hoverBorderWidth: 4
         }));
 
         var myLineChart = new Chart(ctx2, {
@@ -216,7 +217,6 @@
                 responsive: true,
                 scales: {
                     x: {
-                        beginAtZero: true,
                         grid: {
                             display: true
                         },
@@ -228,7 +228,6 @@
                         }
                     },
                     y: {
-                        beginAtZero: true,
                         grid: {
                             display: true
                         },
@@ -248,7 +247,7 @@
                                 size: 14,
                                 weight: 'bold'
                             },
-                            color: 'rgba(0, 0, 0, 0.7)'
+                            color: '#555'
                         }
                     },
                     tooltip: {
@@ -268,7 +267,7 @@
                     }
                 },
                 animation: {
-                    duration: 1000,
+                    duration: 1200,
                     easing: 'easeInOutQuart'
                 }
             }
