@@ -23,7 +23,7 @@ class PDFController extends Controller
      *
      * @return \Barryvdh\DomPDF\PDF
      */
-    private function generatePDF($data, $view = "layouts.PDF.A4", $orientation = "landscape", $reportTitle = '', $dataKey = 'cars')
+    private function generatePDF($data, $view = "Reports.layouts.PDF.A4", $orientation = "landscape", $reportTitle = '', $dataKey = 'cars')
     {
         $estacionamento = Settings::find(1);
         $pdf = PDF::loadView($view, [
@@ -41,7 +41,7 @@ class PDFController extends Controller
             ->where('status', null)
             ->orderBy('created_at', 'desc')
             ->get();
-        return $this->generatePDF($cars, 'layouts.PDF.A4', 'portrait', 'Relatório de Carros');
+        return $this->generatePDF($cars, 'Reports.layouts.PDF.A4', 'portrait', 'Relatório de Carros');
     }
 
     public function generatePDFMotorcycle()
@@ -50,7 +50,7 @@ class PDFController extends Controller
             ->where('created_at', '>=', Carbon::now()->subDays(30))
             ->orderBy('created_at', 'desc')
             ->get();
-        return $this->generatePDF($cars, 'layouts.PDF.A4', 'portrait', 'Relatório de Motos');
+        return $this->generatePDF($cars, 'Reports.layouts.PDF.A4', 'portrait', 'Relatório de Motos');
     }
 
     public function generatePDFTruck()
@@ -59,19 +59,19 @@ class PDFController extends Controller
             ->where('created_at', '>=', Carbon::now()->subDays(30))
             ->orderBy('created_at', 'desc')
             ->get();
-        return $this->generatePDF($cars, 'layouts.PDF.A4', 'portrait', 'Relatório de Caminhonetes');
+        return $this->generatePDF($cars, 'Reports.layouts.PDF.A4', 'portrait', 'Relatório de Caminhonetes');
     }
 
     public function generatePDFFinishedVehicles()
     {
         $cars = Cars::where('status', 'finalizado')->get();
-        return $this->generatePDF($cars, 'layouts.PDF.A4', 'landscape', 'Relatório de Veículos Finalizados');
+        return $this->generatePDF($cars, 'Reports.layouts.PDF.A4', 'landscape', 'Relatório de Veículos Finalizados');
     }
 
     public function generatePDFClientVehicles($client_id)
     {
         $cars = Cars::where('client_id', $client_id)->get();
-        return $this->generatePDF($cars, 'layouts.PDF.A4', 'portrait', 'Relatório de Veículos por Cliente');
+        return $this->generatePDF($cars, 'Reports.layouts.PDF.A4', 'portrait', 'Relatório de Veículos por Cliente');
     }
 
     public function generatePDFEntryExit()
@@ -79,14 +79,14 @@ class PDFController extends Controller
         $cars = Cars::where('created_at', '>=', Carbon::now()->subDays(30))
             ->orderBy('created_at', 'desc')
             ->get();
-        return $this->generatePDF($cars, 'layouts.PDF.A4', 'landscape', 'Relatório de Entrada e Saída de Veículos');
+        return $this->generatePDF($cars, 'Reports.layouts.PDF.A4', 'landscape', 'Relatório de Entrada e Saída de Veículos');
     }
 
     public function generatePDFFinancial()
     {
         $payments = Payments::where('created_at', '>=', Carbon::now()->subDays(30))->get();
         $estacionamento = Settings::find(1);
-        $pdf = PDF::loadView("layouts.PDF.Financial", [
+        $pdf = PDF::loadView("Reports.layouts.PDF.Financial", [
             'payments'       => $payments,
             'estacionamento' => $estacionamento,
             'reportTitle'    => 'Relatório Financeiro'
@@ -98,7 +98,7 @@ class PDFController extends Controller
     {
         $subscribers = Subscribers::where('created_at', '>=', Carbon::now()->subDays(30))->get();
         $estacionamento = Settings::find(1);
-        $pdf = PDF::loadView("layouts.PDF.Subscribers", [
+        $pdf = PDF::loadView("Reports.layouts.PDF.Subscribers", [
             'subscribers'    => $subscribers,
             'estacionamento' => $estacionamento,
             'reportTitle'    => 'Relatório de Mensalistas Ativos'
@@ -110,7 +110,7 @@ class PDFController extends Controller
     {
         $occupancy = Cars::where('created_at', '>=', Carbon::now()->subDays(30))->count();
         $estacionamento = Settings::find(1);
-        $pdf = PDF::loadView("layouts.PDF.Occupancy", [
+        $pdf = PDF::loadView("Reports.layouts.PDF.Occupancy", [
             'occupancy'      => $occupancy,
             'estacionamento' => $estacionamento,
             'reportTitle'    => 'Relatório de Ocupação do Estacionamento'
@@ -121,14 +121,14 @@ class PDFController extends Controller
     public function generatePDFCurrentlyParked()
     {
         $cars = Cars::whereNull('checkout_time')->get();
-        return $this->generatePDF($cars, 'layouts.PDF.A4', 'portrait', 'Relatório de Veículos Estacionados no Momento');
+        return $this->generatePDF($cars, 'Reports.layouts.PDF.A4', 'portrait', 'Relatório de Veículos Estacionados no Momento');
     }
 
     public function generatePDFViolations()
     {
         $violations = Cars::where('status', 'infração')->get();
         $estacionamento = Settings::find(1);
-        $pdf = PDF::loadView("layouts.PDF.Violations", [
+        $pdf = PDF::loadView("Reports.layouts.PDF.Violations", [
             'violations'     => $violations,
             'estacionamento' => $estacionamento,
             'reportTitle'    => 'Relatório de Infrações ou Ocorrências'
@@ -152,6 +152,6 @@ class PDFController extends Controller
             ['name' => 'Relatório de Infrações ou Ocorrências', 'description' => 'Ocorrências registradas, como estadia excedida ou veículos sem pagamento.', 'route' => route('generatePDFViolations')],
         ];
 
-        return view('Reports.index', compact('reports'));
+        return view('Reports.layouts.index', compact('reports'));
     }
 }
