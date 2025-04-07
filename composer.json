@@ -2,18 +2,26 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The Laravel Framework.",
-    "keywords": ["framework", "laravel"],
+    "keywords": [
+        "framework",
+        "laravel"
+    ],
     "license": "MIT",
     "require": {
-        "php": "^8.0.2",
+        "php": "^8.1",
+        "fideloper/proxy": "^4.4",
+        "fruitcake/laravel-cors": "^2.0",
+        "guzzlehttp/guzzle": "^7.0.1",
+        "laravel/framework": "^8.75",
+        "laravel/tinker": "^2.5",
+        "beyondcode/laravel-websockets": "^1.12",
+        "pusher/pusher-php-server": "^5.0",
         "barryvdh/laravel-dompdf": "^2.2",
-        "guzzlehttp/guzzle": "^7.2",
         "infyomlabs/laravel-ui-adminlte": "^5.1",
         "jeroennoten/laravel-adminlte": "^3.8",
-        "laravel/framework": "^9.19",
         "laravel/sanctum": "^3.0",
-        "laravel/tinker": "^2.7",
         "mike42/escpos-php": "^4.0",
+        "silviolleite/laravelpwa": "^2.0",
         "tymon/jwt-auth": "^2.1"
     },
     "require-dev": {

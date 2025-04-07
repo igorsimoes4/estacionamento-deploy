@@ -8,6 +8,7 @@ use App\Http\Controllers\PDFController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\MonthlySubscriberController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -181,5 +182,11 @@ Route::middleware(['auth.cookie'])->group(function () {
         Route::get('/relatorios/ocupacao', [PDFController::class, 'generatePDFParkingOccupancy'])->name('generatePDFParkingOccupancy');
         Route::get('/relatorios/veiculos-estacionados', [PDFController::class, 'generatePDFCurrentlyParked'])->name('generatePDFCurrentlyParked');
         Route::get('/relatorios/infracoes', [PDFController::class, 'generatePDFViolations'])->name('generatePDFViolations');
+        
+        Route::resource('monthly-subscribers', MonthlySubscriberController::class);
+        Route::get('get-vehicle-price/{type}', [MonthlySubscriberController::class, 'getVehiclePrice'])
+            ->name('get-vehicle-price');
     });
 });
+
+

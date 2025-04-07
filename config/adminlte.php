@@ -312,6 +312,11 @@ return [
             'icon' => 'fa fa-fw fa-parking'
         ],
         [
+            'text' => 'Mensalistas',
+            'url'  => 'painel/monthly-subscribers',
+            'icon' => 'fas fa-fw fa-users'
+        ],
+        [
             'header' => 'Relatórios',
         ],
         [

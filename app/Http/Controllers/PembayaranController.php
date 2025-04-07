@@ -34,7 +34,7 @@ class PembayaranController extends Controller
 
         try {
             // Gerar PDF com tamanho de papel personalizado para impressora térmica
-            $pdf = PDF::loadView('layouts.PDF.thermal_ticket', $data)
+            $pdf = PDF::loadView('Reports.layouts.PDF.thermal_ticket', $data)
                       ->setPaper([0, 0, 226, 1000]); // Largura 80mm em pontos (1 ponto = 1/72 polegada)
 
             return $pdf->stream('ticket.pdf');

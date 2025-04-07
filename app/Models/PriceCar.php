@@ -13,4 +13,13 @@ class PriceCar extends Model
     protected $fillable = ['valorHora', 'valorMinimo', 'valorDiaria', 'taxaAdicional', 'taxaMensal'];
 
     use HasFactory;
+
+    public static function boot()
+    {
+        parent::boot();
+        
+        static::retrieved(function($model) {
+            \Log::info('Modelo PriceCar recuperado:', ['model' => $model]);
+        });
+    }
 }

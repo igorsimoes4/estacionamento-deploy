@@ -1,35 +1,46 @@
 @extends('adminlte::page')
 
+@section('head')
+    @laravelPWA
+@endsection
+
 @section('adminlte_css')
     <link rel="icon" type="image/png" href="{{ asset('img/LogoEstacionamento.png') }}">
     <link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.css') }}" />
     <link rel="stylesheet" href="{{ asset('fontawesome-free/css/all.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/style.css') }}" />
     @parent
+
     <style>
         body {
             height: 100vh;
         }
+
         .login-box {
             background-color: rgb(0, 105, 217);
             border-radius: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
             width: 400px;
         }
+
         .card {
             border-radius: 20px;
         }
+
         .card-body {
             border-radius: 20px;
         }
+
         .input-group-text {
             border-radius: 0px 10px 10px 0px !important;
             background-color: #d2d6d8 !important;
             color: #000 !important;
         }
+
         .input-group input {
             border-radius: 10px 0px 0px 10px !important;
         }
+
         button {
             border-radius: 10px !important;
         }
@@ -108,6 +119,7 @@
 @endsection
 
 @section('adminlte_js')
+    <script src="{{ asset('serviceworker.js') }}"></script>
     <script src="{{ asset('js/jquery.min.js') }}"></script>
     <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
     <script src="{{ asset('overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
