@@ -189,4 +189,28 @@ Route::middleware(['auth.cookie'])->group(function () {
     });
 });
 
+// Rota do manifest.json para PWA
+Route::get('/manifest.json', function () {
+    return response()->json([
+        'name' => config('laravelpwa.manifest.name'),
+        'short_name' => config('laravelpwa.manifest.short_name'),
+        'start_url' => config('laravelpwa.manifest.start_url'),
+        'background_color' => config('laravelpwa.manifest.background_color'),
+        'theme_color' => config('laravelpwa.manifest.theme_color'),
+        'display' => config('laravelpwa.manifest.display'),
+        'orientation' => config('laravelpwa.manifest.orientation'),
+        'status_bar' => config('laravelpwa.manifest.status_bar'),
+        'icons' => array_map(function ($size, $icon) {
+            return [
+                'src' => $icon['path'],
+                'sizes' => $size,
+                'type' => 'image/png',
+                'purpose' => $icon['purpose']
+            ];
+        }, array_keys(config('laravelpwa.manifest.icons')), config('laravelpwa.manifest.icons')),
+        'splash' => config('laravelpwa.manifest.splash'),
+        'shortcuts' => config('laravelpwa.manifest.shortcuts'),
+    ]);
+})->name('laravelpwa.manifest');
+
 

@@ -114,7 +114,7 @@ class MonthlySubscriberController extends Controller
             \Log::info('Preço encontrado:', ['price' => $price]);
             
             // Disparar evento WebSocket
-            broadcast(new VehiclePriceUpdated($price, $type))->toOthers();
+            // broadcast(new VehiclePriceUpdated($price, $type))->toOthers();
             
             return response()->json(['price' => (float)$price]);
         } catch (\Exception $e) {

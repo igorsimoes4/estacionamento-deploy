@@ -2,6 +2,7 @@
 
 namespace JeroenNoten\LaravelAdminLte\Console\PackageResources;
 
+use Illuminate\Support\Facades\File;
 use JeroenNoten\LaravelAdminLte\Helpers\CommandHelper;
 
 class PluginsResource extends PackageResource
@@ -9,11 +10,12 @@ class PluginsResource extends PackageResource
     /**
      * The available plugins data. A plugin can contain next data keys:
      * - name: The name of the plugin.
-     * - source: The source of the plugin (relative to base source)
-     * - target: The target of the plugin (relative to base target)
+     * - source: The source of the plugin (relative to base source).
+     * - target: The target of the plugin (relative to base target).
      * - resources: An array with resources data items.
      * - ignore: A list of file patterns to ignore.
      * - recursive: Whether to copy files recursively (default is true).
+     * - dependencies: A list of plugin keys that are required as dependencies.
      *
      * When the target is not specified, the source will be used as the
      * relative path to the base target destination. A resource can contain the
@@ -73,10 +75,8 @@ class PluginsResource extends PackageResource
         ],
         'daterangepicker' => [
             'name' => 'Date Range Picker',
-            'resources' => [
-                ['source' => 'daterangepicker'],
-                ['source' => 'moment'],
-            ],
+            'source' => 'daterangepicker',
+            'dependencies' => ['moment'],
         ],
         'ekkoLightbox' => [
             'name' => 'Ekko Lightbox',
@@ -156,6 +156,10 @@ class PluginsResource extends PackageResource
             ],
             'recursive' => false,
         ],
+        'moment' => [
+            'name' => 'Moment.js',
+            'source' => 'moment',
+        ],
         'paceProgress' => [
             'name' => 'Pace Progress',
             'source' => 'pace-progress',
@@ -185,10 +189,8 @@ class PluginsResource extends PackageResource
         ],
         'tempusdominusBootstrap4' => [
             'name' => 'Tempus Dominus for Bootstrap 4',
-            'resources' => [
-                ['source' => 'tempusdominus-bootstrap-4'],
-                ['source' => 'moment'],
-            ],
+            'source' => 'tempusdominus-bootstrap-4',
+            'dependencies' => ['moment'],
         ],
         'toastr' => [
             'name' => 'Toastr',
@@ -205,7 +207,7 @@ class PluginsResource extends PackageResource
     {
         // Fill the basic resource data.
 
-        $this->description = 'The set of AdminLTE additional plugins';
+        $this->description = 'The set of extra plugins available with AdminLTE';
         $this->required = false;
 
         // Define the base source folder of the plugins.
@@ -219,8 +221,8 @@ class PluginsResource extends PackageResource
         // Fill the set of installation messages templates.
 
         $this->messages = [
-            'install' => 'Install the AdminLTE :plugin plugin?',
-            'overwrite' => 'The :plugin plugin already exists. Want to replace the plugin?',
+            'install' => 'Do you want to plublish the :plugin plugin?',
+            'overwrite' => 'The :plugin plugin was already published. Want to replace?',
             'remove' => 'Do you really want to remove the :plugin plugin?',
         ];
     }
@@ -228,15 +230,15 @@ class PluginsResource extends PackageResource
     /**
      * Gets the plugins source data.
      *
-     * @param  string  $pluginKey  A plugin string key
+     * @param  string  $pluginKey  A plugin key
      * @return array
      */
     public function getSourceData($pluginKey = null)
     {
         // Check if we need to get data of a specific AdminLTE plugin.
 
-        if (isset($pluginKey)) {
-            return $this->plugins[$pluginKey] ?? null;
+        if (! empty($pluginKey)) {
+            return $this->plugins[$pluginKey] ?? [];
         }
 
         // Otherwise, return all the AdminLTE plugins data.
@@ -245,9 +247,9 @@ class PluginsResource extends PackageResource
     }
 
     /**
-     * Install/Export a plugin.
+     * Installs or publishes the specified plugin.
      *
-     * @param  string  $pluginKey  A plugin string key
+     * @param  string  $pluginKey  A plugin key
      * @return void
      */
     public function install($pluginKey = null)
@@ -259,9 +261,9 @@ class PluginsResource extends PackageResource
     }
 
     /**
-     * Uninstall/Remove a plugin.
+     * Uninstalls the specified plugin.
      *
-     * @param  string  $pluginKey  A plugin string key
+     * @param  string  $pluginKey  A plugin key
      * @return void
      */
     public function uninstall($pluginKey = null)
@@ -273,9 +275,9 @@ class PluginsResource extends PackageResource
     }
 
     /**
-     * Check if a plugin already exists on the target destination.
+     * Checks whether a plugin already exists in the target location.
      *
-     * @param  string  $pluginKey  A plugin string key
+     * @param  string  $pluginKey  A plugin key
      * @return bool
      */
     public function exists($pluginKey = null)
@@ -290,9 +292,10 @@ class PluginsResource extends PackageResource
     }
 
     /**
-     * Check if a plugin is correctly installed.
+     * Checks whether a plugin is correctly installed, i.e. if the source items
+     * matches with the items available at the target location.
      *
-     * @param  string  $pluginKey  A plugin string key
+     * @param  string  $pluginKey  A plugin key
      * @return bool
      */
     public function installed($pluginKey = null)
@@ -307,10 +310,10 @@ class PluginsResource extends PackageResource
     }
 
     /**
-     * Prepare a plugin with some sort of normalizations.
+     * Prepares a plugin with some sort of normalizations in its data.
      *
      * @param  array  $plugin  An array with the plugin data
-     * @return array An array with normalized plugin data
+     * @return array
      */
     protected function preparePlugin($plugin)
     {
@@ -346,39 +349,45 @@ class PluginsResource extends PackageResource
     }
 
     /**
-     * Install the specified AdminLTE plugin.
+     * Installs the specified AdminLTE plugin.
      *
      * @param  array  $plugin  An array with the plugin data
      * @return void
      */
     protected function installPlugin($plugin)
     {
-        // Check if we need to export the entire plugin.
+        // First, check and install dependencies plugins, if any.
+
+        foreach (($plugin['dependencies'] ?? []) as $pluginKey) {
+            $this->install($pluginKey);
+        }
+
+        // Now, check if we need to export the entire plugin.
 
         if (! isset($plugin['resources'])) {
-            $this->exportResource($plugin);
+            $this->publishResource($plugin);
 
             return;
         }
 
-        // Otherwise, export only the specified plugin resources.
+        // Otherwise, publish only the specified plugin resources.
 
         foreach ($plugin['resources'] as $res) {
-            $this->exportResource($res);
+            $this->publishResource($res);
         }
     }
 
     /**
-     * Exports the specified resource (usually a folder).
+     * Publishes the specified resource (usually a file or folder).
      *
      * @param  array  $res  An array with the resource data
      * @return void
      */
-    protected function exportResource($res)
+    protected function publishResource($res)
     {
-        // Check the resource source type.
+        // Check whether the resource is a file or a directory.
 
-        if (is_dir($res['source'])) {
+        if (File::isDirectory($res['source'])) {
             CommandHelper::copyDirectory(
                 $res['source'],
                 $res['target'],
@@ -386,27 +395,31 @@ class PluginsResource extends PackageResource
                 $res['recursive'] ?? true,
                 $res['ignore'] ?? []
             );
+        } else {
+            File::ensureDirectoryExists(File::dirname($res['target']));
+            File::copy($res['source'], $res['target']);
         }
     }
 
     /**
-     * Check if the specified plugin already exists on the target destination.
+     * Checks whether the specified plugin already exists in the target
+     * location.
      *
      * @param  array  $plugin  An array with the plugin data
      * @return bool
      */
     protected function pluginExists($plugin)
     {
-        // When the plugin is not a resources list, check if target exists.
+        // When the plugin is not a resources list, just check if target exists.
 
         if (! isset($plugin['resources'])) {
-            return file_exists($plugin['target']);
+            return File::exists($plugin['target']);
         }
 
-        // Otherwise, check if any of the resources already exists.
+        // Otherwise, check if any of the plugin resources already exists.
 
         foreach ($plugin['resources'] as $res) {
-            if (file_exists($res['target'])) {
+            if (File::exists($res['target'])) {
                 return true;
             }
         }
@@ -415,20 +428,18 @@ class PluginsResource extends PackageResource
     }
 
     /**
-     * Check if the specified plugin is correctly installed.
+     * Checks whether the specified plugin is correctly installed.
      *
      * @param  array  $plugin  An array with the plugin data
      * @return bool
      */
     protected function pluginInstalled($plugin)
     {
-        // When the plugin is not a resources list, check if installed.
+        // Check whether the plugin has resources or not.
 
         if (! isset($plugin['resources'])) {
             return $this->resourceInstalled($plugin);
         }
-
-        // Otherwise, check if all the resources are installed.
 
         foreach ($plugin['resources'] as $res) {
             if (! $this->resourceInstalled($res)) {
@@ -440,17 +451,17 @@ class PluginsResource extends PackageResource
     }
 
     /**
-     * Check if the specified resource is correctly installed.
+     * Checks whether the specified resource is correctly installed.
      *
      * @param  array  $res  An array with the resource data
      * @return bool
      */
     protected function resourceInstalled($res)
     {
-        $installed = false;
+        // Check whether the resource is a file or a directory.
 
-        if (is_dir($res['source'])) {
-            $installed = (bool) CommandHelper::compareDirectories(
+        if (File::isDirectory($res['source'])) {
+            return (bool) CommandHelper::compareDirectories(
                 $res['source'],
                 $res['target'],
                 $res['recursive'] ?? true,
@@ -458,18 +469,19 @@ class PluginsResource extends PackageResource
             );
         }
 
-        return $installed;
+        return CommandHelper::compareFiles($res['source'], $res['target']);
     }
 
     /**
-     * Uninstall or remove the specified plugin.
+     * Uninstalls the specified plugin.
      *
      * @param  array  $plugin  An array with the plugin data
      * @return void
      */
     protected function uninstallPlugin($plugin)
     {
-        // Check if we need to remove the entire plugin.
+        // If the plugin doensn't have resources, remove the main target
+        // location folder.
 
         if (! isset($plugin['resources'])) {
             $this->uninstallResource($plugin);
@@ -494,8 +506,12 @@ class PluginsResource extends PackageResource
     {
         $target = $res['target'];
 
-        if (is_dir($target)) {
-            CommandHelper::removeDirectory($target);
+        // Uninstall the specified resource. Note the target location is always
+        // a folder. When the target folder does not exists, we consider the
+        // resource as uninstalled.
+
+        if (File::isDirectory($target)) {
+            File::deleteDirectory($target);
         }
     }
 }

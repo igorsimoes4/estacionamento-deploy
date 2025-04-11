@@ -15,10 +15,49 @@
     RewriteRule ^ %1 [L,R=301]
 
     # Send Requests To Front Controller...
-    # RewriteCond %{REQUEST_URI} (.+)/$
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 
     RewriteRule ^api/.*$ /api/index.php [L]
+</IfModule>
+
+# Configurações para PWA
+<IfModule mod_headers.c>
+    # Service Worker
+    <Files "serviceworker.js">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+        Header set Service-Worker-Allowed "/"
+    </Files>
+    
+    # Manifest
+    <Files "manifest.json">
+        Header set Content-Type "application/manifest+json"
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Access-Control-Allow-Origin "*"
+    </Files>
+
+    # Ícones e imagens
+    <FilesMatch "\.(png|jpg|jpeg|gif|ico)$">
+        Header set Cache-Control "public, max-age=31536000"
+    </FilesMatch>
+</IfModule>
+
+# Configurações de cache para arquivos estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType application/manifest+json "access plus 0 seconds"
+</IfModule>
+
+# Permitir acesso ao service worker de qualquer origem
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
 </IfModule>

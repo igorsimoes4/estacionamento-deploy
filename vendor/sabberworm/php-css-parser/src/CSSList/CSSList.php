@@ -33,16 +33,22 @@ abstract class CSSList implements Renderable, Commentable
 {
     /**
      * @var array<array-key, Comment>
+     *
+     * @internal since 8.8.0
      */
     protected $aComments;
 
     /**
      * @var array<int, RuleSet|CSSList|Import|Charset>
+     *
+     * @internal since 8.8.0
      */
     protected $aContents;
 
     /**
      * @var int
+     *
+     * @internal since 8.8.0
      */
     protected $iLineNo;
 
@@ -61,6 +67,8 @@ abstract class CSSList implements Renderable, Commentable
      *
      * @throws UnexpectedTokenException
      * @throws SourceException
+     *
+     * @internal since V8.8.0
      */
     public static function parseList(ParserState $oParserState, CSSList $oList)
     {
@@ -297,6 +305,22 @@ abstract class CSSList implements Renderable, Commentable
     }
 
     /**
+     * Inserts an item in the CSS list before its sibling. If the desired sibling cannot be found,
+     * the item is appended at the end.
+     *
+     * @param RuleSet|CSSList|Import|Charset $item
+     * @param RuleSet|CSSList|Import|Charset $sibling
+     */
+    public function insertBefore($item, $sibling)
+    {
+        if (in_array($sibling, $this->aContents, true)) {
+            $this->replace($sibling, [$item, $sibling]);
+        } else {
+            $this->append($item);
+        }
+    }
+
+    /**
      * Removes an item from the CSS list.
      *
      * @param RuleSet|Import|Charset|CSSList $oItemToRemove
@@ -392,6 +416,8 @@ abstract class CSSList implements Renderable, Commentable
 
     /**
      * @return string
+     *
+     * @deprecated in V8.8.0, will be removed in V9.0.0. Use `render` instead.
      */
     public function __toString()
     {

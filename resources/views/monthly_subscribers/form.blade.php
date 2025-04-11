@@ -191,38 +191,37 @@
         console.log('Tipo selecionado:', price.value);
         const type = price.value;
         if (type) {
-                const url = `http://127.0.0.1:8000/painel/get-vehicle-price/${type}`;
-                console.log('URL da requisição:', url);
-                
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        console.log('Resposta do servidor:', response);
-                        if (response.price) {
-                            
-                            // Converter o valor para string e formatar
-                            const price = parseFloat(response.price).toFixed(2);
-                            console.log('Preço formatado:', price);
-                            
-                            // Definir o novo valor
-                            $('#monthly_fee').val(price);
-                            
-                            // Reaplicar a máscara
-                            $('#monthly_fee').mask('#.##0,00', {reverse: true});
-                            
-                            // Forçar atualização da máscara
-                            $('#monthly_fee').trigger('input');
-                        } else {
-                            console.error('Preço não encontrado na resposta:', response);
-                        }
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        console.error('Erro ao buscar preço:', textStatus, errorThrown);
-                        console.error('Detalhes do erro:', jqXHR.responseText);
+            const url = "{{ route('get-vehicle-price', ['type' => ':type']) }}".replace(':type', type);
+            console.log('URL da requisição:', url);
+            
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    console.log('Resposta do servidor:', response);
+                    if (response.price) {
+                        // Converter o valor para string e formatar
+                        const price = parseFloat(response.price).toFixed(2);
+                        console.log('Preço formatado:', price);
+                        
+                        // Definir o novo valor
+                        $('#monthly_fee').val(price);
+                        
+                        // Reaplicar a máscara
+                        $('#monthly_fee').mask('#.##0,00', {reverse: true});
+                        
+                        // Forçar atualização da máscara
+                        $('#monthly_fee').trigger('input');
+                    } else {
+                        console.error('Preço não encontrado na resposta:', response);
                     }
-                });
-            }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('Erro ao buscar preço:', textStatus, errorThrown);
+                    console.error('Detalhes do erro:', jqXHR.responseText);
+                }
+            });
+        }
     });
 </script>
