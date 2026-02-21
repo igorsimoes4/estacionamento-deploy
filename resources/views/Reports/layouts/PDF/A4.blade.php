@@ -5,124 +5,143 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório de Veículos - {{ $estacionamento->nome_da_empresa }}</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <title>{{ $reportTitle }} - {{ $estacionamento->nome_da_empresa }}</title>
     <style>
         @page {
-            margin: 10mm 15mm 10mm 0mm;
-            background-color: #fff;
+            margin: 12mm;
         }
 
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: DejaVu Sans, Arial, sans-serif;
+            color: #1f2a37;
+            font-size: 12px;
             margin: 0;
-            padding: 0;
-            background-color: #fff;
-            color: #343a40;
         }
 
-        .container {
-            background-color: #fff;
-            max-width: 100%;
-            padding: 30px;
-            margin: 20px auto;
+        .report {
+            border: 1px solid #d9e5f0;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        header h2 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        header p {
-            margin: 0;
-            font-size: 14px;
-            color: #6c757d;
-        }
-
-        header h4 {
-            margin-top: 20px;
-            font-size: 20px;
-            font-weight: 600;
-        }
-
-        .table {
-            margin-bottom: 20px;
-        }
-
-        .table th {
-            background-color: #007bff;
+        .header {
+            padding: 16px 18px;
+            background: #0f6c74;
             color: #fff;
+        }
+
+        .header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .header p {
+            margin: 4px 0 0;
+            font-size: 11px;
+            opacity: .95;
+        }
+
+        .meta {
+            padding: 12px 18px;
+            border-bottom: 1px solid #e4edf5;
+            background: #f7fbff;
+        }
+
+        .meta h3 {
+            margin: 0;
             font-size: 16px;
+            color: #123f5b;
+        }
+
+        .meta p {
+            margin: 5px 0 0;
+            font-size: 11px;
+            color: #5b6b7b;
+        }
+
+        .content {
+            padding: 14px 18px 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #dbe6f1;
+            padding: 8px;
+            text-align: center;
             vertical-align: middle;
-            text-align: center;
         }
 
-        .table td {
-            font-size: 14px;
-            vertical-align: middle;
-            text-align: center;
+        th {
+            background: #e9f2fa;
+            color: #204766;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .3px;
         }
 
-        footer {
-            text-align: center;
-            font-size: 13px;
-            color: #6c757d;
-            border-top: 1px solid #dee2e6;
-            padding-top: 10px;
-            margin-top: 20px;
+        tbody tr:nth-child(even) {
+            background: #f9fcff;
         }
 
-        @media print {
-            body {
-                background-color: #fff;
-                font-size: 12px;
-            }
+        tfoot td {
+            font-weight: 700;
+            background: #f2f8fd;
+        }
 
-            .container {
-                box-shadow: none;
-                margin: 0;
-                padding: 15px;
-            }
+        .align-right {
+            text-align: right;
+        }
 
-            footer {
-                position: fixed;
-                bottom: 10mm;
-                left: 10mm;
-                right: 10mm;
-            }
+        .footer {
+            padding: 10px 18px;
+            border-top: 1px solid #e4edf5;
+            color: #607182;
+            font-size: 10px;
+            background: #fbfdff;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <header>
+    <div class="report">
+        <div class="header">
             <h2>{{ $estacionamento->nome_da_empresa }}</h2>
-            <p>Endereço: {{ $estacionamento->endereco }}, {{ $estacionamento->cidade }}, {{ $estacionamento->estado }}
-            </p>
+            <p>{{ $estacionamento->endereco }}, {{ $estacionamento->cidade }} - {{ $estacionamento->estado }}</p>
             <p>Telefone: {{ $estacionamento->telefone_da_empresa }} | Email: {{ $estacionamento->email_da_empresa }}</p>
-            <h4>{{ $reportTitle }}</h4>
-            <p>Gerado em: {{ date('d/m/Y H:i') }}</p>
-        </header>
+        </div>
 
-        <main>
-            <table class="table table-bordered table-striped">
+        <div class="meta">
+            <h3>{{ $reportTitle }}</h3>
+            <p>Gerado em: {{ date('d/m/Y H:i') }}</p>
+        </div>
+
+        <div class="content">
+            @php
+                $showFinishedColumns = $cars->contains(fn($car) => $car->status === 'finalizado');
+                $showPaymentMethod = $cars->contains(fn($car) => !empty($car->payment_method));
+                $showPaymentProvider = $cars->contains(fn($car) => !empty($car->payment_provider));
+            @endphp
+            <table>
                 <thead>
                     <tr>
                         <th>Modelo</th>
                         <th>Placa</th>
-                        <th>Data de Entrada</th>
-                        @if ($cars->contains(fn($car) => $car->status === 'finalizado'))
-                            <th>Data de Saída</th>
-                            <th>Preço</th>
+                        <th>Entrada</th>
+                        @if ($showFinishedColumns)
+                            <th>Saida</th>
+                            @if ($showPaymentMethod)
+                                <th>Pagamento</th>
+                            @endif
+                            @if ($showPaymentProvider)
+                                <th>Gateway</th>
+                            @endif
+                            <th>Preco</th>
                         @endif
                     </tr>
                 </thead>
@@ -132,29 +151,44 @@
                         <tr>
                             <td>{{ $car->modelo }}</td>
                             <td>{{ $car->placa }}</td>
-                            <td>{{ $car->created_at->format('d/m/Y H:i') }}</td>
+                            <td>{{ \Carbon\Carbon::parse($car->created_at)->format('d/m/Y H:i') }}</td>
                             @if ($car->status === 'finalizado')
-                                <td>{{ $car->updated_at->format('d/m/Y H:i') }}</td>
+                                <td>{{ \Carbon\Carbon::parse($car->saida ?? $car->updated_at)->format('d/m/Y H:i') }}</td>
+                                @if ($showPaymentMethod)
+                                    <td>{{ \App\Models\Cars::paymentMethodLabel($car->payment_method) }}</td>
+                                @endif
+                                @if ($showPaymentProvider)
+                                    <td>{{ \App\Models\Cars::paymentProviderLabel($car->payment_provider) }}</td>
+                                @endif
                                 <td>R$ {{ number_format($car->preco, 2, ',', '.') }}</td>
                                 @php $totalPrice += $car->preco; @endphp
+                            @elseif ($showFinishedColumns)
+                                <td>-</td>
+                                @if ($showPaymentMethod)
+                                    <td>-</td>
+                                @endif
+                                @if ($showPaymentProvider)
+                                    <td>-</td>
+                                @endif
+                                <td>-</td>
                             @endif
                         </tr>
                     @endforeach
                 </tbody>
-                @if ($cars->contains(fn($car) => $car->status === 'finalizado'))
+                @if ($showFinishedColumns)
                     <tfoot>
                         <tr>
-                            <td colspan="4" class="text-right"><strong>Total:</strong></td>
-                            <td><strong>R$ {{ number_format($totalPrice, 2, ',', '.') }}</strong></td>
+                            <td colspan="{{ 4 + ($showPaymentMethod ? 1 : 0) + ($showPaymentProvider ? 1 : 0) }}" class="align-right">Total</td>
+                            <td>R$ {{ number_format($totalPrice, 2, ',', '.') }}</td>
                         </tr>
                     </tfoot>
                 @endif
             </table>
-        </main>
+        </div>
 
-        <footer>
-            <p>Relatório gerado automaticamente pelo sistema.</p>
-        </footer>
+        <div class="footer">
+            Relatorio gerado automaticamente pelo sistema.
+        </div>
     </div>
 </body>
 

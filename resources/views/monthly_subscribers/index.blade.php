@@ -4,11 +4,6 @@
     <link rel="icon" type="image/png" href="{{ asset('img/LogoEstacionamento.png') }}">
     <link rel="stylesheet" href="{{ asset('fontawesome-free/css/all.min.css') }}" />
     @parent
-    <style>
-        .wrapper {
-            background-color: #F4F6F9;
-        }
-    </style>
 @endsection
 
 @section('content')
@@ -18,23 +13,40 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Mensalistas</h5>
-                    <a href="{{ route('monthly-subscribers.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Novo Mensalista
-                    </a>
+                    <div class="d-flex" style="gap: 8px;">
+                        <a href="{{ route('monthly-access.login') }}" class="btn btn-outline-primary" target="_blank" rel="noopener">
+                            <i class="fas fa-user-lock"></i> Portal Mensalista
+                        </a>
+                        <a href="{{ route('monthly-subscribers.create') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Novo Mensalista
+                        </a>
+                    </div>
                 </div>
 
                 <div class="card-body">
                     @if (session('success'))
-                        <div class="alert alert-success">
-                            {{ session('success') }}
-                        </div>
+                        <div class="alert alert-success">{{ session('success') }}</div>
                     @endif
 
                     @if (session('error'))
-                        <div class="alert alert-danger">
-                            {{ session('error') }}
-                        </div>
+                        <div class="alert alert-danger">{{ session('error') }}</div>
                     @endif
+
+                    @if (session('warning'))
+                        <div class="alert alert-warning">{{ session('warning') }}</div>
+                    @endif
+
+                    <form method="GET" action="{{ route('monthly-subscribers.index') }}" class="mb-3">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <select name="status" class="form-control" onchange="this.form.submit()">
+                                    <option value="todos" {{ ($status ?? 'todos') === 'todos' ? 'selected' : '' }}>Todos</option>
+                                    <option value="ativos" {{ ($status ?? '') === 'ativos' ? 'selected' : '' }}>Apenas ativos</option>
+                                    <option value="vencendo" {{ ($status ?? '') === 'vencendo' ? 'selected' : '' }}>Vencendo em 7 dias</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
 
                     <div class="table-responsive">
                         <table class="table table-striped">
@@ -46,8 +58,9 @@
                                     <th>Placa</th>
                                     <th>Tipo</th>
                                     <th>Status</th>
+                                    <th>Acesso</th>
                                     <th>Vencimento</th>
-                                    <th>Ações</th>
+                                    <th>Acoes</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -63,17 +76,26 @@
                                                 {{ $subscriber->is_active ? 'Ativo' : 'Inativo' }}
                                             </span>
                                         </td>
-                                        <td>{{ $subscriber->end_date->format('d/m/Y') }}</td>
+                                        <td>
+                                            @if (!$subscriber->access_enabled)
+                                                <span class="badge bg-secondary">Bloqueado</span>
+                                            @elseif (!empty($subscriber->access_password))
+                                                <span class="badge bg-success">Liberado</span>
+                                            @else
+                                                <span class="badge bg-warning text-dark">Pendente</span>
+                                            @endif
+                                        </td>
+                                        <td>{{ optional($subscriber->end_date)->format('d/m/Y') }}</td>
                                         <td>
                                             <div class="btn-group">
-                                                <a href="{{ route('monthly-subscribers.edit', $subscriber) }}" 
-                                                   class="btn btn-sm btn-primary">
+                                                <a href="{{ route('monthly-subscribers.show', $subscriber) }}" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{ route('monthly-subscribers.edit', $subscriber) }}" class="btn btn-sm btn-primary">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <form action="{{ route('monthly-subscribers.destroy', $subscriber) }}" 
-                                                      method="POST" 
-                                                      class="d-inline"
-                                                      onsubmit="return confirm('Tem certeza que deseja excluir este mensalista?')">
+                                                <form action="{{ route('monthly-subscribers.destroy', $subscriber) }}" method="POST" class="d-inline"
+                                                    onsubmit="return confirm('Tem certeza que deseja excluir este mensalista?')">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-sm btn-danger">
@@ -85,7 +107,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center">Nenhum mensalista cadastrado.</td>
+                                        <td colspan="9" class="text-center">Nenhum mensalista cadastrado.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -96,4 +118,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

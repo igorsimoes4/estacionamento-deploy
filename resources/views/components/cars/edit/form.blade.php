@@ -1,85 +1,97 @@
-<form action="{{route('cars.update')}}" class="form-horizontal" method="POST">
+<form action="{{ route('cars.update', $car->id) }}" method="POST" class="theme-fade-in">
     @csrf
-    <div class="form-group row">
+    @method('PUT')
 
-            <label class="col-sm-2 col-form-label" for="">Modelo do Carro</label>
-            <div class="col-sm-10">
-                <input type="text" name="modelo" value="{{$car->modelo}}" class="form-control @error('modelo') is-invalid @enderror" />
-            </div>
-
-    </div>
-
-    <div class="form-group row">
-
-            <label class="col-sm-2 col-form-label" for="">Placa do Carro</label>
-            <div class="col-sm-10">
-                <input type="text" name="placa" value="{{$car->placa}}" class="form-control @error('placa') is-invalid @enderror" />
-            </div>
-
-    </div>
-
-    <div class="form-group row">
-
-        <label class="col-sm-2 col-form-label" for="">Hora de Entrada</label>
-        <div class="col-sm-10">
-            <input type="datetime-local" name="entrada" value="{{$car->created_at}}" class="form-control @error('entrada') is-invalid @enderror" />
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="small text-uppercase font-weight-bold">Modelo</label>
+            <input type="text" name="modelo" value="{{ old('modelo', $car->modelo) }}"
+                class="form-control @error('modelo') is-invalid @enderror" placeholder="Ex: Corolla XEI">
+            @error('modelo')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
 
-    </div>
+        <div class="col-md-6 mb-3">
+            <label class="small text-uppercase font-weight-bold">Placa</label>
+            <input type="text" name="placa" value="{{ old('placa', $car->placa) }}"
+                class="form-control @error('placa') is-invalid @enderror" placeholder="AAA-1234">
+            @error('placa')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
 
-    @php
-        date_default_timezone_set('America/Sao_Paulo');
-        $saida = new DateTime();
-        $entrada = new DateTime($car->created_at);
-        $tempo = date_diff($entrada, $saida);
+        <div class="col-md-6 mb-3">
+            <label class="small text-uppercase font-weight-bold">Data/Hora de Entrada</label>
+            <input type="datetime-local" name="entrada"
+                value="{{ old('entrada', optional($car->created_at)->format('Y-m-d\\TH:i')) }}"
+                class="form-control @error('entrada') is-invalid @enderror">
+            @error('entrada')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
 
-        $hora = $tempo->h;
-        $minuto = $tempo->i;
-        $dia = $tempo->d;
-    @endphp
-
-    <div class="form-group row">
-
-        <label class="col-sm-2 col-form-label" for="">Escolha o tipo de Veiculo</label>
-        <div class="col-sm-10">
-
-            <select class="form-control" name="tipo_car">
-                <option value="carro" {{$car->tipo_car=='carro'?'selected="selected"':''}}>Carro</option>
-                <option value="moto" {{$car->tipo_car=='moto'?'selected="selected"':''}}>Moto</option>
-                <option value="caminhonete" {{$car->tipo_car=='caminhonete'?'selected="selected"':''}}>Caminhonete</option>
+        <div class="col-md-6 mb-3">
+            <label class="small text-uppercase font-weight-bold">Tipo de Veiculo</label>
+            <select class="form-control @error('tipo_car') is-invalid @enderror" name="tipo_car">
+                <option value="carro" {{ old('tipo_car', $car->tipo_car) === 'carro' ? 'selected' : '' }}>Carro
+                </option>
+                <option value="moto" {{ old('tipo_car', $car->tipo_car) === 'moto' ? 'selected' : '' }}>Moto</option>
+                <option value="caminhonete" {{ old('tipo_car', $car->tipo_car) === 'caminhonete' ? 'selected' : '' }}>
+                    Caminhonete</option>
             </select>
+            @error('tipo_car')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
 
-    </div>
-
-    <div class="form-group row">
-
-        <label class="col-sm-2 col-form-label" for="">Tempo Estacionado</label>
-        <div class="col-sm-10">
-            <input type="text" disabled name="entrada" value="{{$tempo->format('%d dias %h horas %i minutos')}}" class="form-control @error('entrada') is-invalid @enderror" />
+        <div class="col-md-12 mb-3">
+            <label class="small text-uppercase font-weight-bold">Preco Atual</label>
+            <input type="text" disabled value="R$ {{ number_format((float) ($car->price ?? 0), 2, ',', '.') }}"
+                class="form-control">
         </div>
 
-    </div>
-
-    <div class="form-group row">
-
-
-
-        <label class="col-sm-2 col-form-label" for="">Preço</label>
-        <div class="col-sm-10">
-            <input type="price" value="{{$car->price}}" class="form-control @error('entrada') is-invalid @enderror">
-        </div>
-
-    </div>
-
-    <div class="form-group row">
-
-            <label class="col-sm-8 col-form-label" for=""></label>
-            <div class="col-sm-4">
-                <button class="btn btn-danger form-control">
-                    <i style="margin-right: 5px; font-size:15px;" class="fa fa-times" aria-hidden="true"></i> Finalizar
-                </button>
+        @if ($car->status === 'finalizado')
+            <div class="col-md-6 mb-3">
+                <label class="small text-uppercase font-weight-bold">Metodo de Pagamento</label>
+                <input type="text" disabled value="{{ \App\Models\Cars::paymentMethodLabel($car->payment_method) }}"
+                    class="form-control">
             </div>
 
+            <div class="col-md-6 mb-3">
+                <label class="small text-uppercase font-weight-bold">Gateway de Pagamento</label>
+                <input type="text" disabled value="{{ \App\Models\Cars::paymentProviderLabel($car->payment_provider) }}"
+                    class="form-control">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="small text-uppercase font-weight-bold">Pagamento Registrado em</label>
+                <input type="text" disabled
+                    value="{{ optional($car->paid_at ?? $car->saida)->format('d/m/Y H:i:s') }}"
+                    class="form-control">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="small text-uppercase font-weight-bold">Referencia de Pagamento</label>
+                <input type="text" disabled value="{{ $car->payment_reference ?: '-' }}"
+                    class="form-control">
+            </div>
+
+            @if (!empty($car->payment_url))
+                <div class="col-md-12 mb-3">
+                    <label class="small text-uppercase font-weight-bold">URL de Pagamento/Boleto</label>
+                    <input type="text" disabled value="{{ $car->payment_url }}" class="form-control">
+                </div>
+            @endif
+        @endif
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-2">
+        <a href="{{ route('cars.index') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left mr-1"></i> Voltar
+        </a>
+        <button class="btn btn-theme" style="color: white;">
+            <i class="fa fa-save mr-1" aria-hidden="true"></i> Salvar Alterações
+        </button>
     </div>
 </form>

@@ -1,57 +1,55 @@
-<form action="{{route('cars.store')}}" class="form-horizontal" method="POST">
+<form action="{{ route('cars.store') }}" method="POST" class="theme-fade-in">
     @csrf
-    <div class="form-group row">
-
-            <label class="col-sm-2 col-form-label" for="">Modelo do Carro</label>
-            <div class="col-sm-10">
-                <input type="text" name="modelo" value="{{old('modelo')}}" class="form-control @error('modelo') is-invalid @enderror" />
-            </div>
-
-    </div>
-
-    <div class="form-group row">
-
-            <label class="col-sm-2 col-form-label" for="">Placa do Carro</label>
-            <div class="col-sm-10">
-                <input type="text" id="placa" name="placa" data-mask="YYY-YYYY" data-mask-selectonfocus="true" value="{{old('placa')}}" class="form-control @error('placa') is-invalid @enderror" />
-            </div>
-
-    </div>
-
-    <div class="form-group row">
-
-        <label class="col-sm-2 col-form-label" for="">Hora Atual</label>
-        <div class="col-sm-10">
-            @php
-                $data_atual = new DateTime();
-                $data_atual = $data_atual->format('d/m/Y H:i');
-            @endphp
-            <input type="datetime-local" autocomplete="" name="entrada" value="{{old('entrada')}}" class="form-control @error('entrada') is-invalid @enderror" />
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="small text-uppercase font-weight-bold">Modelo</label>
+            <input type="text" name="modelo" value="{{ old('modelo') }}"
+                class="form-control @error('modelo') is-invalid @enderror" placeholder="Ex: Corolla XEI">
+            @error('modelo')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
 
-    </div>
+        <div class="col-md-6 mb-3">
+            <label class="small text-uppercase font-weight-bold">Placa</label>
+            <input type="text" id="placa" name="placa" data-mask="AAA-0000" data-mask-selectonfocus="true"
+                value="{{ old('placa') }}" class="form-control @error('placa') is-invalid @enderror"
+                placeholder="AAA-1234">
+            @error('placa')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
 
-    <div class="form-group row">
+        <div class="col-md-6 mb-3">
+            <label class="small text-uppercase font-weight-bold">Data/Hora de Entrada</label>
+            <input type="datetime-local" autocomplete="" name="entrada"
+                value="{{ old('entrada', now()->format('Y-m-d\TH:i')) }}"
+                class="form-control @error('entrada') is-invalid @enderror">
+            @error('entrada')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
 
-        <label class="col-sm-2 col-form-label" for="">Escolha o tipo de Veiculo</label>
-        <div class="col-sm-10">
-            <select class="form-control" name="tipo_car">
-                <option value="carro" selected>Carro</option>
-                <option value="moto">Moto</option>
-                <option value="caminhonete">Caminhonete</option>
+        <div class="col-md-6 mb-3">
+            <label class="small text-uppercase font-weight-bold">Tipo de Veiculo</label>
+            <select class="form-control @error('tipo_car') is-invalid @enderror" name="tipo_car">
+                <option value="carro" {{ old('tipo_car', 'carro') === 'carro' ? 'selected' : '' }}>Carro</option>
+                <option value="moto" {{ old('tipo_car') === 'moto' ? 'selected' : '' }}>Moto</option>
+                <option value="caminhonete" {{ old('tipo_car') === 'caminhonete' ? 'selected' : '' }}>Caminhonete
+                </option>
             </select>
+            @error('tipo_car')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
-
     </div>
 
-    <div class="form-group row">
-
-            <label class="col-sm-8 col-form-label" for=""></label>
-            <div class="col-sm-4">
-                <button class="btn btn-success form-control">
-                    <i style="margin-right: 5px; font-size:15px;" class="fa fa-plus-circle" aria-hidden="true"></i> Adicionar
-                </button>
-            </div>
-
+    <div class="d-flex justify-content-between align-items-center mt-2">
+        <a href="{{ route('cars.index') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left mr-1"></i> Voltar
+        </a>
+        <button class="btn btn-theme" style="color: white;">
+            <i class="fa fa-plus-circle mr-1" aria-hidden="true"></i> Adicionar Veiculo
+        </button>
     </div>
 </form>

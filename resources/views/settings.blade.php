@@ -92,9 +92,12 @@
         <li class="breadcrumb-item active" aria-current="page">Informações do Estacionamento</li>
     </ol>
 </nav>
-    <h1 style="display: flex; justify-content:space-between; padding: 0 20px 0 20px; margin-bottom:10px;">
-        Informações do Estacionamento
-    </h1>
+    <div style="display: flex; justify-content:space-between; align-items:center; padding: 0 20px 0 20px; margin-bottom:10px;">
+        <h1 style="margin:0;">Informações do Estacionamento</h1>
+        <a href="{{ route('paymentSettings') }}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-credit-card mr-1"></i> Configurar Pagamentos
+        </a>
+    </div>
 @endsection
 
 @section('content')
@@ -116,4 +119,3 @@
         </div>
     </div>
 @endsection
-

@@ -17,11 +17,10 @@ return new class extends Migration
             $table->id();
             $table->string('modelo');
             $table->string('placa');
-            $table->time('entrada');
-            $table->float('preco');
-            $table->string('tipo_car');
+            $table->time('entrada')->nullable();
+            $table->decimal('preco', 10, 2)->default(0);
             $table->string('status')->nullable();
-            $table->timestamps('saida');
+            $table->timestamp('saida')->nullable();
             $table->timestamps();
         });
     }

@@ -5,147 +5,120 @@
     <meta charset="UTF-8">
     <title>{{ $reportTitle }} - {{ $estacionamento->nome_da_empresa }}</title>
     <style>
+        @page {
+            margin: 12mm;
+        }
+
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: DejaVu Sans, Arial, sans-serif;
             margin: 0;
-            padding: 0;
-            color: #333;
-            background-color: #fff;
+            color: #1f2a37;
+            font-size: 12px;
         }
 
-        .container {
-            width: 100%;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
+        .wrapper {
+            border: 1px solid #d9e5f0;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 20px;
+        .header {
+            background: #0f6c74;
+            color: #fff;
+            padding: 16px 18px;
         }
 
-        header h1 {
-            font-size: 28px;
-            font-weight: bold;
+        .header h1 {
             margin: 0;
-            color: #007bff;
-        }
-
-        header p {
-            font-size: 14px;
-            margin: 2px 0;
-            color: #555;
-        }
-
-        header .report-title {
             font-size: 20px;
-            margin-top: 10px;
-            font-weight: bold;
-            color: #007bff;
+        }
+
+        .header p {
+            margin: 4px 0 0;
+            font-size: 11px;
+            opacity: .95;
+        }
+
+        .title {
+            padding: 12px 18px;
+            border-bottom: 1px solid #e3edf6;
+            background: #f7fbff;
+        }
+
+        .title h2 {
+            margin: 0;
+            font-size: 16px;
+            color: #123f5b;
+        }
+
+        .title p {
+            margin: 5px 0 0;
+            font-size: 11px;
+            color: #607182;
         }
 
         .content {
+            padding: 24px 18px;
             text-align: center;
-            margin-top: 20px;
         }
 
-        .occupancy-box {
+        .value-box {
             display: inline-block;
-            background-color: #e9ecef;
-            padding: 25px 50px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
+            min-width: 220px;
+            border: 1px solid #cfe2f2;
+            border-radius: 12px;
+            padding: 20px 24px;
+            background: linear-gradient(160deg, #ffffff 0%, #f3f9ff 100%);
         }
 
-        .occupancy-box h2 {
-            font-size: 40px;
-            font-weight: bold;
-            color: #28a745;
+        .value-box h3 {
             margin: 0;
+            font-size: 44px;
+            line-height: 1;
+            color: #0f6c74;
         }
 
-        .occupancy-box p {
-            margin-top: 15px;
-            font-size: 16px;
-            color: #495057;
+        .value-box p {
+            margin: 8px 0 0;
+            color: #526273;
+            font-size: 13px;
         }
 
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            font-size: 12px;
-            color: #6c757d;
-            border-top: 1px solid #ddd;
-            padding-top: 10px;
-        }
-
-        .footer-text {
-            margin: 0;
-        }
-
-        .footer-small {
+        .footer {
+            border-top: 1px solid #e3edf6;
+            background: #fbfdff;
+            padding: 10px 18px;
             font-size: 10px;
-            color: #888;
-        }
-
-        .page-break {
-            page-break-before: always;
-        }
-
-        @media print {
-            body {
-                margin: 0;
-                padding: 0;
-                font-size: 12px;
-            }
-
-            header h1 {
-                font-size: 24px;
-            }
-
-            .occupancy-box h2 {
-                font-size: 32px;
-            }
-
-            footer {
-                font-size: 10px;
-            }
-
-            .container {
-                padding: 15px;
-            }
+            color: #607182;
+            text-align: center;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <header>
+    <div class="wrapper">
+        <div class="header">
             <h1>{{ $estacionamento->nome_da_empresa }}</h1>
-            <p>{{ $estacionamento->endereco }}, {{ $estacionamento->cidade }}, {{ $estacionamento->estado }}</p>
+            <p>{{ $estacionamento->endereco }}, {{ $estacionamento->cidade }} - {{ $estacionamento->estado }}</p>
             <p>Telefone: {{ $estacionamento->telefone_da_empresa }} | Email: {{ $estacionamento->email_da_empresa }}</p>
-            <div class="report-title">
-                <p>{{ $reportTitle }}</p>
-                <p>Gerado em: {{ date('d/m/Y H:i') }}</p>
-            </div>
-        </header>
+        </div>
+
+        <div class="title">
+            <h2>{{ $reportTitle }}</h2>
+            <p>Gerado em: {{ date('d/m/Y H:i') }}</p>
+        </div>
 
         <div class="content">
-            <div class="occupancy-box">
-                <h2>{{ $occupancy }}</h2>
-                <p>Veículos registrados nos últimos 30 dias</p>
+            <div class="value-box">
+                <h3>{{ $occupancy }}</h3>
+                <p>Veiculos ocupando vagas no momento</p>
             </div>
         </div>
 
-        <footer>
-            <p class="footer-text">Relatório gerado automaticamente pelo sistema.</p>
-            <p class="footer-small">Este relatório é gerado com base nas informações mais recentes disponíveis.</p>
-        </footer>
+        <div class="footer">
+            Relatorio gerado automaticamente pelo sistema.
+        </div>
     </div>
-
-    <!-- Adiciona uma quebra de página para melhorar a impressão, se necessário -->
-    <div class="page-break"></div>
 </body>
 
 </html>

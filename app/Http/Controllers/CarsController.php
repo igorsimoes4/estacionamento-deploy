@@ -6,340 +6,432 @@ use App\Models\Cars;
 use App\Models\PriceCar;
 use App\Models\PriceMotorcycle;
 use App\Models\PriceTruck;
-use DateTime;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 
 class CarsController extends Controller
 {
+    private const VEHICLE_TYPES = ['carro', 'moto', 'caminhonete'];
 
-    public function price($id)
-    {
-        $car = Cars::findOrFail($id);
+    private const DEFAULT_PRICES = [
+        'carro' => [
+            'valorHora' => 5,
+            'valorMinimo' => 10,
+            'valorDiaria' => 50,
+            'taxaAdicional' => 17,
+            'taxaMensal' => 400,
+        ],
+        'moto' => [
+            'valorHora' => 1,
+            'valorMinimo' => 5,
+            'valorDiaria' => 14,
+            'taxaAdicional' => 8,
+            'taxaMensal' => 100,
+        ],
+        'caminhonete' => [
+            'valorHora' => 5,
+            'valorMinimo' => 15,
+            'valorDiaria' => 60,
+            'taxaAdicional' => 20,
+            'taxaMensal' => 600,
+        ],
+    ];
 
-        // Calcular o tempo de permanência
-        $entrada = Carbon::parse($car->created_at);
-        $saida = Carbon::now();
-        $tempo = $saida->diff($entrada);
-
-        // Determinar o modelo de preço com base no tipo do veículo
-        $precos = [
-            'carro' => PriceCar::first(),
-            'moto' => PriceMotorcycle::first(),
-            'caminhonete' => PriceTruck::first()
-        ];
-
-        if (!isset($precos[$car->tipo_car])) {
-            Log::warning("Tipo de veículo desconhecido: {$car->tipo_car}");
-            return 0; // Pode lançar uma exceção ou definir um valor padrão
-        }
-
-        $price = $precos[$car->tipo_car];
-
-        // Calcular o valor com base no tempo e nos preços
-        return $this->calculatePrice($tempo, $price, $id);
-    }
-
-    private function calculatePrice($tempo, $price, $id)
-    {
-        $valor = 0;
-
-        // Tempo de permanência
-        $minuto = $tempo->i;
-        $hora = $tempo->h;
-        $dia = $tempo->d;
-        $mes = $tempo->m;
-
-        // Tarifas
-        $valorMinimo = $price->valorMinimo;
-        $valorHora = $price->valorHora;
-        $valorDiaria = $price->valorDiaria;
-        $taxaMensal = $price->taxaMensal;
-        $taxaAdicional = $price->taxaAdicional;
-
-        // Se o tempo for maior que um mês, aplica taxa mensal
-        if ($mes >= 1) {
-            $valor += $mes * $taxaMensal;
-        }
-
-        // Se passou de um dia, cobra diárias e considera horas adicionais
-        if ($dia >= 1) {
-            $valor += $dia * $valorDiaria;
-
-            // Se houver horas adicionais, cobra a taxa de hora proporcional
-            if ($hora > 0) {
-                $valor += ($hora * $valorHora) + ($hora > 1 ? $taxaAdicional : 0);
-            }
-        }
-        // Se não passou de um dia, cobra por hora ou tarifa mínima
-        else {
-            if ($hora >= 1) {
-                $valor += ($hora * $valorHora) + ($hora > 1 ? $taxaAdicional : 0);
-            } elseif ($minuto <= 30) {
-                $valor += $valorMinimo;
-            } else {
-                $valor += $valorHora;
-            }
-        }
-
-        Log::info("Cálculo de preço para o veículo $id: $mes mês(es), $dia dia(s), $hora hora(s), $minuto minuto(s) - Total: R$ $valor");
-
-        return $valor;
-    }
-
-
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index(Request $request)
     {
-        $data = [];
+        $filters = [
+            'search' => trim((string) $request->query('search', '')),
+            'tipo' => $request->query('tipo', ''),
+            'status' => $request->query('status', 'ativo'),
+        ];
 
-        // Pega o parâmetro de pesquisa da URL, se houver
-        $search = $request->get('search', '');
+        $query = Cars::query();
 
-        // Realiza a busca filtrada por 'placa' com base na pesquisa, se houver
-        // $cars = Cars::where('status', '=', null)
-        //             ->where('placa', 'LIKE', '%' . $search . '%')
-        //             ->orderBy('created_at', 'desc');
-        $cars = Cars::orderBy('created_at', 'asc')->get();
-
-        // Calcula o preço para cada carro
-        foreach ($cars as $car) {
-            $car['price'] = $this->price($car->id);
+        if ($filters['search'] !== '') {
+            $query->where(function ($q) use ($filters) {
+                $term = '%' . $filters['search'] . '%';
+                $q->where('placa', 'LIKE', $term)
+                    ->orWhere('modelo', 'LIKE', $term);
+            });
         }
 
-        // Preserva o parâmetro de pesquisa na URL da paginação
-        // $cars->appends(['search' => $search]);
+        if (in_array($filters['tipo'], self::VEHICLE_TYPES, true)) {
+            $query->where('tipo_car', $filters['tipo']);
+        }
 
-        $data['cars'] = $cars;
-        return view('cars', $data);
+        if ($filters['status'] === 'finalizado') {
+            $query->finished();
+        } elseif ($filters['status'] !== 'todos') {
+            $query->parked();
+            $filters['status'] = 'ativo';
+        }
+
+        $cars = $query
+            ->orderByDesc('created_at')
+            ->get();
+
+        $cars->transform(function (Cars $car) {
+            $car->price = $this->priceForCar($car);
+            $car->duration_human = $this->formatDuration($car->created_at, $car->saida);
+            return $car;
+        });
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'filters' => $filters,
+                'data' => $cars,
+            ]);
+        }
+
+        $summary = [
+            'active' => Cars::parked()->count(),
+            'finished_today' => Cars::finished()->whereDate('saida', Carbon::today())->count(),
+            'revenue_today' => (float) Cars::finished()->whereDate('saida', Carbon::today())->sum('preco'),
+        ];
+
+        return view('cars', [
+            'cars' => $cars,
+            'filters' => $filters,
+            'summary' => $summary,
+        ]);
     }
 
-    public function search(Request $req)
+    public function search(Request $request)
     {
-        $data = $req->only([
-            'search'
-        ]);
+        $search = trim((string) $request->input('search', ''));
 
-        if (empty($data['search'])) {
-            return redirect(route('cars.index'))->withInput();
+        if ($search === '') {
+            return redirect()->route('cars.index');
         }
 
-        $validator = Validator::make($data, [
-            'search' => ['string', 'max:8'],
-        ], [
-            'max' => 'O campo :attribute deve ter no máximo :max caracteres.',
-        ]);
-
-        if ($validator->fails()) {
-            Log::error('Failed search cars', ['validator' => $validator]);
-            return redirect(route('cars.index'))->withErrors($validator)->withInput();
-        }
-
-        // Obter a consulta digitada pelo usuário
-        $search = $data['search'];
-
-        // Realizar a lógica de pesquisa no seu modelo ou na fonte de dados desejada
-        $cars = Cars::where('placa', 'LIKE', '%' . $search . '%')->where('status', '=', null);
-
-        if ($cars->isEmpty()) {
-            Log::warning("Nenhum carro encontrado para a pesquisa: $search");
-            return redirect(route('cars.index'))->withErrors(['error' => "Carros Não Localizados contendo $search na Placa"]);
-        }
-
-        foreach ($cars as $car) {
-            $car['price'] = $this->price($car->id);
-        }
-
-        // Preserva o parâmetro de pesquisa na URL de paginação
-        // $cars->appends(['search' => $search]);
-
-        $data['cars'] = $cars;
-
-        session()->flash('create', "Carros Localizados com sucesso contendo $search na Placa");
-
-        return view('cars', $data)->with('create', "Carros Localizados contendo $search na Placa");
+        return redirect()->route('cars.index', ['search' => $search]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
         return view('cars_add');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
         $data = $request->only([
             'modelo',
             'placa',
             'entrada',
-            'tipo_car'
+            'tipo_car',
         ]);
 
         $validator = Validator::make($data, [
             'modelo' => ['required', 'string', 'max:64'],
-            'placa' => ['required', 'string', 'max:8', 'regex:/^[A-Z0-9]{3}-[A-Z0-9]{4}$/i'],
-            'entrada' => ['required', 'date'],
-            'tipo_car' => ['required', 'string', Rule::in(['carro', 'moto', 'caminhonete'])],
-        ], [
-            'placa.regex' => 'A placa deve estar no formato AAA-1234.',
+            'placa' => ['required', 'string', 'max:8'],
+            'entrada' => ['nullable', 'date'],
+            'tipo_car' => ['required', Rule::in(self::VEHICLE_TYPES)],
         ]);
 
         if ($validator->fails()) {
-            return redirect(route('cars.create'))->withErrors($validator)->withInput();
+            return redirect()->route('cars.create')->withErrors($validator)->withInput();
+        }
+
+        $normalizedPlate = $this->normalizePlate($data['placa']);
+
+        if ($normalizedPlate === null) {
+            return redirect()->route('cars.create')
+                ->withErrors(['placa' => 'A placa deve estar no formato AAA-1234 ou AAA1A23.'])
+                ->withInput();
+        }
+
+        if (Cars::parked()->where('placa', $normalizedPlate)->exists()) {
+            return redirect()->route('cars.create')
+                ->withErrors(['placa' => 'Ja existe um veiculo ativo com esta placa.'])
+                ->withInput();
         }
 
         $car = new Cars();
         $car->modelo = $data['modelo'];
-        $car->placa = $data['placa'];
-        $car->entrada = $data['entrada'];
+        $car->placa = $normalizedPlate;
+        $car->entrada = Carbon::parse($data['entrada'] ?? now())->format('H:i:s');
         $car->tipo_car = $data['tipo_car'];
         $car->preco = 0;
+
+        if (!empty($data['entrada'])) {
+            $car->created_at = Carbon::parse($data['entrada']);
+        }
+
         $car->save();
 
-        Log::info("Carro Adicionado com sucesso" . $car->placa);
+        Log::info('Veiculo adicionado', ['placa' => $car->placa, 'id' => $car->id]);
 
-        return redirect(route('cars.index'))->with('create', 'Carro adicionado com sucesso');
+        return redirect()->route('cars.index')->with('create', 'Veiculo adicionado com sucesso.');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
-        $car = Cars::find($id);
+        $car = Cars::findOrFail($id);
+        $car->price = $this->priceForCar($car);
+        $car->duration_human = $this->formatDuration($car->created_at, $car->saida);
 
-        $car['price'] = $this->price($car->id);
-        $car['entrada'] = new DateTime($car->created_at);
-
-        if ($car) {
-            return response()->json(['success' => true, 'html' => view('modal_cars_edit', ['car' => $car])->render()]);
+        if (request()->expectsJson()) {
+            return response()->json($car);
         }
-        Log::error("Carro não encontrado com o ID: $id");
-        return redirect(route('cars.index'));
+
+        return redirect()->route('cars.edit', $car->id);
     }
 
     public function showModal($id)
     {
-        $car = Cars::find($id);
-
-        date_default_timezone_set('America/Sao_Paulo');
-        $saida = new DateTime();
-        $entrada = new DateTime($car->created_at);
-        $tempo = date_diff($entrada, $saida);
-
-        $hora = $tempo->h;
-        $minuto = $tempo->i;
-        $dia = $tempo->d;
-        $mes = $tempo->m;
-
-        $car['price'] = $this->price($id);
-        $car['entrada'] = $car->created_at->format('d/m/y \à\s H \h\o\r\a i \m\i\n\u\t\o\s');
-        $car['horaT'] = $hora;
-        $car['minutoT'] = $minuto;
-        $car['diaT'] = $dia;
-        $car['mesT'] = $mes;
-
-        Log::info("Modal do carro $id exibido com sucesso");
-
-        return response()->json($car);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        $car = Cars::find($id);
-
-        if ($car) {
-            $car['preco2'] = number_format($car['preco'], 2, ',', '.');
-            $car['price'] = $this->price($car->id);
-            return view('cars_edit', ['car' => $car]);
-        }
-
-        return redirect(route('cars.index'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        // 1. Encontrar o registro do carro estacionado pelo ID
         $car = Cars::findOrFail($id);
 
-        // 2. Calcular o valor da estadia
         $entrada = Carbon::parse($car->created_at);
-        $saida = Carbon::now();
-        $tempo = $saida->diff($entrada);
+        $saida = $car->saida ? Carbon::parse($car->saida) : now();
+        $tempo = $entrada->diff($saida);
 
-        // Determinar o tipo de veículo e buscar os preços correspondentes
-        switch ($car->tipo_car) {
-            case 'carro':
-                $price = PriceCar::first();
-                break;
-            case 'moto':
-                $price = PriceMotorcycle::first();
-                break;
-            case 'caminhonete':
-                $price = PriceTruck::first();
-                break;
-            default:
-                return redirect(route('cars.index'))->with('delete_car', 'Tipo de veículo desconhecido.')->setStatusCode(400);
+        return response()->json([
+            'id' => $car->id,
+            'modelo' => $car->modelo,
+            'placa' => $car->placa,
+            'tipo_car' => $car->tipo_car,
+            'payment_method' => $car->payment_method,
+            'payment_method_label' => Cars::paymentMethodLabel($car->payment_method),
+            'price' => number_format($this->priceForCar($car), 2, ',', '.'),
+            'entrada' => $entrada->format('d/m/Y H:i:s'),
+            'horaT' => $tempo->h,
+            'minutoT' => $tempo->i,
+            'diaT' => $tempo->d,
+            'mesT' => $tempo->m,
+        ]);
+    }
+
+    public function edit($id)
+    {
+        $car = Cars::findOrFail($id);
+
+        $car->price = $this->priceForCar($car);
+
+        return view('cars_edit', ['car' => $car]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $car = Cars::findOrFail($id);
+
+        $data = $request->only([
+            'modelo',
+            'placa',
+            'entrada',
+            'tipo_car',
+        ]);
+
+        $validator = Validator::make($data, [
+            'modelo' => ['required', 'string', 'max:64'],
+            'placa' => ['required', 'string', 'max:8'],
+            'entrada' => ['nullable', 'date'],
+            'tipo_car' => ['required', Rule::in(self::VEHICLE_TYPES)],
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->route('cars.edit', $car->id)->withErrors($validator)->withInput();
         }
 
-        // Calcular o valor com base no tempo e nos preços
-        $valor = $this->calculatePrice($tempo, $price, $id);
+        $normalizedPlate = $this->normalizePlate($data['placa']);
 
-        // 3. Atualizar o registro com o valor e marcar como finalizado
-        $car->preco = $valor;
-        $car->status = 'finalizado'; // Supondo que há uma coluna 'status' no banco de dados
-        $car->saida = $saida->format('Y-m-d H:i:s');
+        if ($normalizedPlate === null) {
+            return redirect()->route('cars.edit', $car->id)
+                ->withErrors(['placa' => 'A placa deve estar no formato AAA-1234 ou AAA1A23.'])
+                ->withInput();
+        }
+
+        $duplicatedActivePlate = Cars::parked()
+            ->where('placa', $normalizedPlate)
+            ->where('id', '!=', $car->id)
+            ->exists();
+
+        if ($duplicatedActivePlate) {
+            return redirect()->route('cars.edit', $car->id)
+                ->withErrors(['placa' => 'Ja existe um veiculo ativo com esta placa.'])
+                ->withInput();
+        }
+
+        $car->modelo = $data['modelo'];
+        $car->placa = $normalizedPlate;
+        $car->tipo_car = $data['tipo_car'];
+
+        if (!empty($data['entrada'])) {
+            $entryDate = Carbon::parse($data['entrada']);
+            $car->created_at = $entryDate;
+            $car->entrada = $entryDate->format('H:i:s');
+        }
+
         $car->save();
 
+        return redirect()->route('cars.index')->with('create', 'Veiculo atualizado com sucesso.');
+    }
 
+    public function destroy(Request $request, $id)
+    {
+        $car = Cars::findOrFail($id);
 
-        Log::info("Carro finalizado com sucesso: $car->placa com valor total de $valor");
+        if ($car->status === 'finalizado') {
+            return redirect()->route('cars.index')->with('delete_car', 'Este veiculo ja foi finalizado.');
+        }
 
-        return redirect(route('cars.index'))->with('create', 'Carro finalizado com sucesso.');
+        $paymentData = validator($request->all(), [
+            'payment_method' => ['nullable', Rule::in(Cars::PAYMENT_METHODS)],
+            'payment_reference' => ['nullable', 'string', 'max:120'],
+        ])->validate();
+
+        $price = $this->priceForCar($car);
+        $exitAt = now();
+
+        $car->preco = $price;
+        $car->status = 'finalizado';
+        $car->saida = $exitAt;
+        $car->payment_method = $paymentData['payment_method'] ?? 'dinheiro';
+        $car->payment_provider = 'manual';
+        $car->payment_status = 'paid';
+        $car->external_payment_id = null;
+        $car->payment_url = null;
+        $car->payment_reference = $paymentData['payment_reference'] ?? null;
+        $car->paid_at = $exitAt;
+        $car->save();
+
+        Log::info('Veiculo finalizado', ['id' => $car->id, 'placa' => $car->placa, 'valor' => $price]);
+
+        return redirect()->route('cars.index')->with('create', 'Veiculo finalizado com sucesso.');
+    }
+
+    public function price($id)
+    {
+        $car = Cars::findOrFail($id);
+        return $this->priceForCar($car);
+    }
+
+    private function priceForCar(Cars $car): float
+    {
+        if ($car->status === 'finalizado' && $car->preco !== null) {
+            return (float) $car->preco;
+        }
+
+        $prices = $this->resolvePriceByVehicleType($car->tipo_car);
+
+        $entryAt = Carbon::parse($car->created_at);
+        $exitAt = $car->saida ? Carbon::parse($car->saida) : now();
+
+        return $this->calculatePrice($entryAt, $exitAt, $prices, $car->id);
+    }
+
+    private function calculatePrice(Carbon $entryAt, Carbon $exitAt, Collection $prices, int $carId): float
+    {
+        $minutes = max(1, $entryAt->diffInMinutes($exitAt));
+        $totalDays = intdiv($minutes, 1440);
+        $remainingMinutes = $minutes % 1440;
+
+        $months = intdiv($totalDays, 30);
+        $days = $totalDays % 30;
+
+        $amount = 0.0;
+
+        if ($months > 0) {
+            $amount += $months * (float) $prices->get('taxaMensal');
+        }
+
+        if ($days > 0) {
+            $amount += $days * (float) $prices->get('valorDiaria');
+        }
+
+        if ($remainingMinutes > 0) {
+            if ($remainingMinutes <= 30 && $totalDays === 0 && $months === 0) {
+                $amount += (float) $prices->get('valorMinimo');
+            } else {
+                $hourBlocks = (int) ceil($remainingMinutes / 60);
+                $amount += $hourBlocks * (float) $prices->get('valorHora');
+
+                if ($hourBlocks > 1) {
+                    $amount += (float) $prices->get('taxaAdicional');
+                }
+            }
+        }
+
+        $amount = round($amount, 2);
+
+        Log::info('Calculo de preco executado', [
+            'car_id' => $carId,
+            'minutes' => $minutes,
+            'months' => $months,
+            'days' => $days,
+            'amount' => $amount,
+        ]);
+
+        return $amount;
+    }
+
+    private function resolvePriceByVehicleType(string $vehicleType): Collection
+    {
+        switch ($vehicleType) {
+            case 'carro':
+                $model = PriceCar::query()->firstOrCreate([], self::DEFAULT_PRICES['carro']);
+                break;
+            case 'moto':
+                $model = PriceMotorcycle::query()->firstOrCreate([], self::DEFAULT_PRICES['moto']);
+                break;
+            case 'caminhonete':
+                $model = PriceTruck::query()->firstOrCreate([], self::DEFAULT_PRICES['caminhonete']);
+                break;
+            default:
+                Log::warning('Tipo de veiculo desconhecido para precificacao', ['tipo_car' => $vehicleType]);
+                return collect(self::DEFAULT_PRICES['carro']);
+        }
+
+        return collect([
+            'valorHora' => (float) $model->valorHora,
+            'valorMinimo' => (float) $model->valorMinimo,
+            'valorDiaria' => (float) $model->valorDiaria,
+            'taxaAdicional' => (float) $model->taxaAdicional,
+            'taxaMensal' => (float) $model->taxaMensal,
+        ]);
+    }
+
+    private function normalizePlate(string $plate): ?string
+    {
+        $plate = strtoupper(trim($plate));
+        $plate = preg_replace('/\s+/', '', $plate);
+
+        if (preg_match('/^[A-Z]{3}-\d{4}$/', $plate) === 1) {
+            return $plate;
+        }
+
+        if (preg_match('/^[A-Z]{3}\d[A-Z]\d{2}$/', $plate) === 1) {
+            return substr($plate, 0, 3) . '-' . substr($plate, 3);
+        }
+
+        return null;
+    }
+
+    private function formatDuration(Carbon $entryAt, ?Carbon $exitAt): string
+    {
+        $diff = $entryAt->diff($exitAt ?? now());
+
+        $parts = [];
+
+        if ($diff->m > 0) {
+            $parts[] = $diff->m . ' mes(es)';
+        }
+
+        if ($diff->d > 0) {
+            $parts[] = $diff->d . ' dia(s)';
+        }
+
+        if ($diff->h > 0) {
+            $parts[] = $diff->h . ' hora(s)';
+        }
+
+        if ($diff->i > 0) {
+            $parts[] = $diff->i . ' minuto(s)';
+        }
+
+        return empty($parts) ? '1 minuto' : implode(' ', $parts);
     }
 }

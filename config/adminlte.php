@@ -152,7 +152,7 @@ return [
 
     'layout_topnav' => null,
     'layout_boxed' => null,
-    'layout_fixed_sidebar' => null,
+    'layout_fixed_sidebar' => true,
     'layout_fixed_navbar' => null,
     'layout_fixed_footer' => null,
     'layout_dark_mode' => null,
@@ -317,6 +317,11 @@ return [
             'icon' => 'fas fa-fw fa-users'
         ],
         [
+            'text' => 'Contabilidade',
+            'url'  => 'painel/accounting',
+            'icon' => 'fas fa-fw fa-calculator'
+        ],
+        [
             'header' => 'Relatórios',
         ],
         [
@@ -326,12 +331,17 @@ return [
         ],
         ['header' => 'Configurações'],
         [
-            'text'        => 'Informações do Estacionamento',
-            'url'         => 'painel/settings',
-            'icon'        => 'fas fa-fw fa-info',
+            'text' => 'Estacionamento',
+            'url'  => 'painel/settings',
+            'icon' => 'fas fa-fw fa-info-circle',
         ],
         [
-            'text'    => 'Gerenciar Preços',
+            'text' => 'Pagamentos',
+            'url'  => 'painel/settings/payments',
+            'icon' => 'fas fa-fw fa-credit-card',
+        ],
+        [
+            'text'    => 'Preços',
             'icon'    => 'fas fa-fw fa-cash-register',
             'submenu' => [
                 [
@@ -388,6 +398,21 @@ return [
     */
 
     'plugins' => [
+        'PanelTheme' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => 'css/panel-theme.css',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'js/panel-theme.js',
+                ],
+            ],
+        ],
         'Datatables' => [
             'active' => false,
             'files' => [
@@ -505,5 +530,5 @@ return [
     |
     */
 
-    'livewire' => false,
+    'livewire' => true,
 ];

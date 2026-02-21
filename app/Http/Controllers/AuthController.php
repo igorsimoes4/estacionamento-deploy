@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use GuzzleHttp\Cookie\SetCookie;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -11,13 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
-use PHPUnit\Framework\Constraint\ArrayHasKey;
-use Symfony\Component\HttpFoundation\Cookie as HttpFoundationCookie;
-use Tymon\JWTAuth\Exceptions\JWTException;
-use Tymon\JWTAuth\Http\Parser\Cookies;
 
 class AuthController extends Controller
 {
@@ -25,84 +18,68 @@ class AuthController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth:web', ['except' => ['login', 'register', 'logout']]);
+        $this->middleware('auth:web', ['except' => ['login', 'register']]);
     }
-
-
 
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
-
-        $validator = Validator::make($credentials, [
-            'email' => ['required','string', 'email'],
-            'password' => ['required','string'],
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
         ]);
 
-        if($validator->fails()) {
-            Log::error('Erro no Login: ' . $credentials['email'] . $credentials['password']);
-            return redirect(route('login'))->withErrors($validator)->withInput();
-        }
-
-
         $token = Auth::attempt($credentials);
+
         if (!$token) {
-            Log::error('Token não gerado ' . $credentials['email'] . $credentials['password']);
-            Session::flash('error', 'Email e ou Senha Incorretos');
-            return redirect()->route('login')->with([
-                'status' => 'error',
-                'message' => 'Unauthorized',
-            ], 401);
+            Session::flash('error', 'Email e/ou senha invalidos.');
+            return redirect()->route('login')->withInput($request->only('email'));
         }
 
-        $user = Auth::user();
-        Log::info('User loged');
+        $cookie = cookie(
+            'auth_token',
+            $token,
+            60,
+            null,
+            null,
+            $request->isSecure(),
+            true,
+            false,
+            'Lax'
+        );
 
-        $cookie = cookie('auth_token', $token, 60);
-
-        return redirect()->route('home')->with([
-            'status' => 'success',
-            'user' => $user,
-            'authorisation' => [
-                'token' => $token,
-                'type' => 'bearer',
-            ]
-        ])->cookie($cookie);
+        return redirect()->route('home')->with('status', 'success')->cookie($cookie);
     }
 
     public function register(Request $request)
     {
-        $request->validate([
+        $payload = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6',
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $payload['name'],
+            'email' => $payload['email'],
+            'password' => Hash::make($payload['password']),
         ]);
 
         $token = Auth::login($user);
 
-        $cookie = cookie('auth_token', $token, 60);
+        $cookie = cookie('auth_token', $token, 60, null, null, $request->isSecure(), true, false, 'Lax');
 
-        return redirect()->route('home')->with([
-            'status' => 'success',
-            'message' => 'User created successfully',
-            'user' => $user,
-            'authorisation' => [
-                'token' => $token,
-                'type' => 'bearer',
-            ]
-        ])->cookie($cookie);
+        return redirect()->route('home')->with('status', 'success')->cookie($cookie);
     }
 
     public function logout()
     {
-        setcookie('auth_token', "");
-        return redirect()->route('login');
+        try {
+            Auth::logout();
+        } catch (\Throwable $e) {
+            // Ignore token errors and continue logout flow.
+        }
+
+        return redirect()->route('login')->withCookie(Cookie::forget('auth_token'));
     }
 
     public function refresh()
@@ -113,7 +90,7 @@ class AuthController extends Controller
             'authorisation' => [
                 'token' => Auth::refresh(),
                 'type' => 'bearer',
-            ]
+            ],
         ]);
     }
 }

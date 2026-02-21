@@ -13,9 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('cars', function (Blueprint $table) {
-            $table->string('tipo_car')->default('carro');
-        });
+        if (!Schema::hasColumn('cars', 'tipo_car')) {
+            Schema::table('cars', function (Blueprint $table) {
+                $table->string('tipo_car')->default('carro')->after('preco');
+            });
+        }
     }
 
     /**
@@ -25,8 +27,10 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('cars', function (Blueprint $table) {
-            $table->dropColumn('tipo_car');
-        });
+        if (Schema::hasColumn('cars', 'tipo_car')) {
+            Schema::table('cars', function (Blueprint $table) {
+                $table->dropColumn('tipo_car');
+            });
+        }
     }
 };

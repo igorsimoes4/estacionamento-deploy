@@ -4,72 +4,48 @@ namespace App\Http\Controllers;
 
 use App\Models\Cars;
 use App\Models\MonthlySubscriber;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class EstacionamentoController extends Controller
 {
+    private const TOTAL_SPOTS = [
+        'carro' => 50,
+        'moto' => 30,
+        'caminhonete' => 20,
+        'mensalistas' => 20,
+    ];
+
     public function index()
     {
+        $today = Carbon::today();
+        $startOfMonth = Carbon::now()->startOfMonth();
+
         $data = [];
 
-        // Contagem atual de veículos estacionados
-        $data['car_parking'] = Cars::where('tipo_car', 'carro')->whereNull('status')->whereNull('saida')->count();
-        $data['moto_parking'] = Cars::where('tipo_car', 'moto')->whereNull('status')->whereNull('saida')->count();
-        $data['caminhonete_parking'] = Cars::where('tipo_car', 'caminhonete')->whereNull('status')->whereNull('saida')->count();
+        $data['car_parking'] = Cars::parked()->where('tipo_car', 'carro')->count();
+        $data['moto_parking'] = Cars::parked()->where('tipo_car', 'moto')->count();
+        $data['caminhonete_parking'] = Cars::parked()->where('tipo_car', 'caminhonete')->count();
 
-        // Contagem de mensalistas ativos
-        $data['monthly_members'] = MonthlySubscriber::where('is_active', true)
-            ->count();
+        $data['monthly_members'] = MonthlySubscriber::active()->count();
+        $data['monthly_cars'] = MonthlySubscriber::active()->where('vehicle_type', 'carro')->count();
+        $data['monthly_motos'] = MonthlySubscriber::active()->where('vehicle_type', 'moto')->count();
+        $data['monthly_caminhonetes'] = MonthlySubscriber::active()->where('vehicle_type', 'caminhonete')->count();
 
-        // Contagem de mensalistas por tipo de veículo
-        $data['monthly_cars'] = Cars::where('tipo_car', 'carro')
-            ->whereNull('status')
-            ->whereNull('saida')
-            ->count();
-
-        $data['monthly_motos'] = Cars::where('tipo_car', 'moto')
-            ->whereNull('status')
-            ->whereNull('saida')
-            ->count();
-
-        $data['monthly_caminhonetes'] = Cars::where('tipo_car', 'caminhonete')
-            ->whereNull('status')
-            ->whereNull('saida')
-            ->count();
-
-        // Últimos 10 registros de carros ativos
-        $data['cars'] = Cars::whereNull('status')
-            ->whereNull('saida')
-            ->latest()
+        $data['cars'] = Cars::parked()
+            ->latest('created_at')
             ->take(10)
             ->get();
 
-        // Gráfico para os últimos 30 dias
         $last30Days = Carbon::now()->subDays(30);
         $carPie = [
-            'carro' => Cars::where('tipo_car', 'carro')
-                ->where('created_at', '>=', $last30Days)
-                ->whereNull('status')
-                ->whereNull('saida')
-                ->count(),
-            'moto' => Cars::where('tipo_car', 'moto')
-                ->where('created_at', '>=', $last30Days)
-                ->whereNull('status')
-                ->whereNull('saida')
-                ->count(),
-            'caminhonete' => Cars::where('tipo_car', 'caminhonete')
-                ->where('created_at', '>=', $last30Days)
-                ->whereNull('status')
-                ->whereNull('saida')
-                ->count()
+            'carro' => Cars::where('tipo_car', 'carro')->where('created_at', '>=', $last30Days)->count(),
+            'moto' => Cars::where('tipo_car', 'moto')->where('created_at', '>=', $last30Days)->count(),
+            'caminhonete' => Cars::where('tipo_car', 'caminhonete')->where('created_at', '>=', $last30Days)->count(),
         ];
 
         $data['CarLabels'] = array_keys($carPie);
         $data['CarValues'] = array_values($carPie);
 
-        // Dados para o gráfico anual
         $currentYear = Carbon::now()->year;
         $months = [];
         $carData = [];
@@ -86,9 +62,7 @@ class EstacionamentoController extends Controller
             $caminhoneteData[] = $this->countVehiclesByTypeAndPeriod('caminhonete', $start, $end);
         }
 
-        // Dados para o último trimestre
-        $now = Carbon::now();
-        $quarterStart = $now->copy()->subMonths(3)->startOfMonth();
+        $quarterStart = Carbon::now()->subMonths(3)->startOfMonth();
         $quarterLabels = [];
         $quarterCarData = [];
         $quarterMotoData = [];
@@ -104,61 +78,71 @@ class EstacionamentoController extends Controller
             $quarterCaminhoneteData[] = $this->countVehiclesByTypeAndPeriod('caminhonete', $start, $end);
         }
 
-        // Gráfico de horários de pico
         $peakHours = [];
         $hours = range(0, 23);
         foreach ($hours as $hour) {
-            $startTime = Carbon::now()->startOfDay()->addHours($hour);
-            $endTime = Carbon::now()->startOfDay()->addHours($hour + 1);
-            $peakHours[] = Cars::whereBetween('created_at', [$startTime, $endTime])
-                ->whereNull('status')
-                ->whereNull('saida')
-                ->count();
+            $startTime = $today->copy()->addHours($hour);
+            $endTime = $today->copy()->addHours($hour + 1);
+
+            $peakHours[] = Cars::whereBetween('created_at', [$startTime, $endTime])->count();
         }
 
         $data['PeakHours'] = $peakHours;
-        $data['HourLabels'] = array_map(fn($h) => sprintf('%02d:00', $h), $hours);
+        $data['HourLabels'] = array_map(static fn ($h) => sprintf('%02d:00', $h), $hours);
 
-        // Preparar dados para o gráfico
         $data['CarLabelsYear'] = ['carro', 'moto', 'caminhonete'];
         $data['CarValuesYear'] = [
             'carro' => $carData,
             'moto' => $motoData,
-            'caminhonete' => $caminhoneteData
+            'caminhonete' => $caminhoneteData,
         ];
         $data['QuarterLabels'] = $quarterLabels;
         $data['QuarterValues'] = [
             'carro' => $quarterCarData,
             'moto' => $quarterMotoData,
-            'caminhonete' => $quarterCaminhoneteData
+            'caminhonete' => $quarterCaminhoneteData,
         ];
         $data['MonthLabels'] = $months;
 
-        // Total de vagas por tipo de veículo
-        $data['total_car_vagas'] = 50;
-        $data['total_moto_vagas'] = 30;
-        $data['total_caminhonete_vagas'] = 20;
+        $data['total_car_vagas'] = self::TOTAL_SPOTS['carro'];
+        $data['total_moto_vagas'] = self::TOTAL_SPOTS['moto'];
+        $data['total_caminhonete_vagas'] = self::TOTAL_SPOTS['caminhonete'];
+        $data['total_mensalistas_vagas'] = self::TOTAL_SPOTS['mensalistas'];
 
-        // Total de vagas para mensalistas
-        $data['total_mensalistas_vagas'] = 20;
+        $data['car_entries_today'] = Cars::where('tipo_car', 'carro')->whereDate('created_at', $today)->count();
+        $data['car_exits_today'] = Cars::finished()->where('tipo_car', 'carro')->whereDate('saida', $today)->count();
+        $data['moto_entries_today'] = Cars::where('tipo_car', 'moto')->whereDate('created_at', $today)->count();
+        $data['moto_exits_today'] = Cars::finished()->where('tipo_car', 'moto')->whereDate('saida', $today)->count();
+        $data['caminhonete_entries_today'] = Cars::where('tipo_car', 'caminhonete')->whereDate('created_at', $today)->count();
+        $data['caminhonete_exits_today'] = Cars::finished()->where('tipo_car', 'caminhonete')->whereDate('saida', $today)->count();
+
+        $ticketsAvulsosMonth = (float) Cars::finished()->where('saida', '>=', $startOfMonth)->sum('preco');
+        $mensalidadesMonth = (float) MonthlySubscriber::active()->sum('monthly_fee');
+        $servicosAdicionais = 0.0;
+
+        $data['revenue_total_month'] = $ticketsAvulsosMonth + $mensalidadesMonth + $servicosAdicionais;
+        $data['revenue_avulsos_month'] = $ticketsAvulsosMonth;
+        $data['revenue_mensalistas_month'] = $mensalidadesMonth;
+        $data['revenue_services_month'] = $servicosAdicionais;
+
+        if ($data['revenue_total_month'] > 0) {
+            $totalRevenue = $data['revenue_total_month'];
+            $data['revenue_avulsos_pct'] = (int) round(($ticketsAvulsosMonth / $totalRevenue) * 100);
+            $data['revenue_mensalistas_pct'] = (int) round(($mensalidadesMonth / $totalRevenue) * 100);
+            $data['revenue_services_pct'] = max(0, 100 - $data['revenue_avulsos_pct'] - $data['revenue_mensalistas_pct']);
+        } else {
+            $data['revenue_avulsos_pct'] = 0;
+            $data['revenue_mensalistas_pct'] = 0;
+            $data['revenue_services_pct'] = 0;
+        }
 
         return view('home', compact('data'));
     }
 
-    private function countVehiclesByTypeAndPeriod($type, $startDate, $endDate)
+    private function countVehiclesByTypeAndPeriod(string $type, Carbon $startDate, Carbon $endDate): int
     {
         return Cars::where('tipo_car', $type)
-            ->where(function ($query) use ($startDate, $endDate) {
-                $query->where(function ($q) use ($startDate, $endDate) {
-                    $q->whereBetween('created_at', [$startDate, $endDate])
-                      ->whereNull('saida');
-                })
-                ->orWhere(function ($q) use ($startDate, $endDate) {
-                    $q->whereBetween('created_at', [$startDate, $endDate])
-                      ->whereBetween('saida', [$startDate, $endDate]);
-                });
-            })
-            ->whereNull('status')
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
     }
 }

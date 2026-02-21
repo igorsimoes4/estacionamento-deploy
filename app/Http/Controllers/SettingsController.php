@@ -11,14 +11,28 @@ use Illuminate\Support\Facades\Validator;
 
 class SettingsController extends Controller
 {
-    public function index() {
-        $estacionamento = Settings::find(1);
-        $data['estacionamento'] = $estacionamento;
-        $data['route'] = 'editSettings';
-        return view('settings', $data);
+    public function index()
+    {
+        $estacionamento = Settings::firstOrCreate(['id' => 1], []);
+
+        return view('settings', [
+            'estacionamento' => $estacionamento,
+            'route' => 'editSettings',
+        ]);
     }
 
-    public function editSettings(Request $req) {
+    public function paymentSettings()
+    {
+        $estacionamento = Settings::firstOrCreate(['id' => 1], []);
+
+        return view('settings_payments', [
+            'estacionamento' => $estacionamento,
+            'route' => 'editPaymentSettings',
+        ]);
+    }
+
+    public function editSettings(Request $req)
+    {
         $data = $req->only([
             'nomeDaEmpresa',
             'endereco',
@@ -34,25 +48,24 @@ class SettingsController extends Controller
         ]);
 
         $validator = Validator::make($data, [
-            'nomeDaEmpresa'                 => ['required', 'string'],
-            'endereco'                        => ['required', 'string'],
-            'cidade'                          => ['required', 'string'],
-            'estado'                          => ['required', 'string'],
-            'cep'                             => ['required', 'string'],
-            'telefone_da_empresa'             => ['required', 'string'],
-            'email_da_empresa'                => ['required', 'email'],
-            'numero_de_registro_da_Empresa'   => ['required', 'string'],
-            'cnpj_Cpf_da_empresa'             => ['required', 'string'],
-            'descricao_da_empresa'            => ['nullable', 'string'],
-            'coordenadas_gps'                 => ['nullable', 'string']
+            'nomeDaEmpresa' => ['required', 'string', 'max:255'],
+            'endereco' => ['required', 'string', 'max:255'],
+            'cidade' => ['required', 'string', 'max:100'],
+            'estado' => ['required', 'string', 'max:50'],
+            'cep' => ['required', 'string', 'max:20'],
+            'telefone_da_empresa' => ['required', 'string', 'max:30'],
+            'email_da_empresa' => ['required', 'email', 'max:255'],
+            'numero_de_registro_da_Empresa' => ['required', 'string', 'max:255'],
+            'cnpj_Cpf_da_empresa' => ['required', 'string', 'max:30'],
+            'descricao_da_empresa' => ['nullable', 'string'],
+            'coordenadas_gps' => ['nullable', 'string', 'max:255'],
         ]);
 
-
-        if($validator->fails()) {
-            return redirect(route('settings'))->withErrors($validator)->withInput();
+        if ($validator->fails()) {
+            return redirect()->route('settings')->withErrors($validator)->withInput();
         }
 
-        $estacionamento = Settings::find(1);
+        $estacionamento = Settings::firstOrCreate(['id' => 1], []);
         $estacionamento->nome_da_empresa = $data['nomeDaEmpresa'];
         $estacionamento->endereco = $data['endereco'];
         $estacionamento->cidade = $data['cidade'];
@@ -64,126 +77,201 @@ class SettingsController extends Controller
         $estacionamento->cnpj_cpf_da_empresa = $data['cnpj_Cpf_da_empresa'];
         $estacionamento->descricao_da_empresa = $data['descricao_da_empresa'];
         $estacionamento->coordenadas_gps = $data['coordenadas_gps'];
-        $estacionamento->update();
+        $estacionamento->save();
 
-        return redirect(route('settings'))->with('create', 'Valores editados com sucesso');
+        return redirect()->route('settings')->with('create', 'Informacoes atualizadas com sucesso.');
     }
 
-    public function priceCar() {
-        $priceCar = PriceCar::find(1);
-        $data['priceCar'] = $priceCar;
-        $data['route'] = 'editPriceCar';
-        return view('priceCar', $data);
-    }
-
-    public function editPriceCar(Request $req) {
-            $data = $req->only([
-                'valorHora',
-                'valorMinimo',
-                'valorDiaria',
-                'taxaAdicional',
-                'taxaMensal'
-            ]);
-
-            $validator = Validator::make($data, [
-                'valorHora'     => [ 'required' ],
-                'valorMinimo'   => [ 'required' ],
-                'valorDiaria'   => [ 'required' ],
-                'taxaAdicional' => [ 'required' ],
-                'taxaMensal'    => [ 'required' ]
-            ]);
-
-            if($validator->fails()) {
-                return redirect(route('priceCar'))->withErrors($validator)->withInput();
-            }
-
-            $priceCar = PriceCar::find(1);
-            $priceCar->valorHora     =  $data['valorHora'];
-            $priceCar->valorMinimo   =  $data['valorMinimo'];
-            $priceCar->valorDiaria   =  $data['valorDiaria'];
-            $priceCar->taxaAdicional =  $data['taxaAdicional'];
-            $priceCar->taxaMensal    =  $data['taxaMensal'];
-            $priceCar->update();
-
-            return redirect(route('priceCar'))->with('create', 'Valores editados com sucesso');
-
-    }
-
-    public function priceMotorcycle() {
-        $priceMotorcycle = PriceMotorcycle::find(1);
-        $data['priceMotorcycle'] = $priceMotorcycle;
-        $data['route'] = 'editPriceMotorcycle';
-        return view('priceMotorcycle', $data);
-    }
-
-    public function editPriceMotorcycle(Request $req) {
+    public function editPaymentSettings(Request $req)
+    {
         $data = $req->only([
+            'pix_key',
+            'pix_beneficiary_name',
+            'pix_city',
+            'pix_description',
+            'card_machine_instructions',
+            'payment_provider_default',
+            'payment_environment',
+            'pagbank_token',
+            'pagbank_api_base_url',
+            'cielo_merchant_id',
+            'cielo_merchant_key',
+            'cielo_api_base_url',
+            'stone_api_token',
+            'stone_api_base_url',
+            'rede_api_token',
+            'rede_api_base_url',
+            'getnet_client_id',
+            'getnet_client_secret',
+            'getnet_seller_id',
+            'getnet_api_base_url',
+            'boleto_due_days',
+        ]);
+
+        $validator = Validator::make($data, [
+            'pix_key' => ['nullable', 'string', 'max:255'],
+            'pix_beneficiary_name' => ['nullable', 'string', 'max:255'],
+            'pix_city' => ['nullable', 'string', 'max:100'],
+            'pix_description' => ['nullable', 'string', 'max:80'],
+            'card_machine_instructions' => ['nullable', 'string', 'max:2000'],
+            'payment_provider_default' => ['nullable', 'in:manual,stone,cielo,rede,getnet,pagbank'],
+            'payment_environment' => ['nullable', 'in:sandbox,production'],
+            'pagbank_token' => ['nullable', 'string', 'max:255'],
+            'pagbank_api_base_url' => ['nullable', 'url', 'max:255'],
+            'cielo_merchant_id' => ['nullable', 'string', 'max:255'],
+            'cielo_merchant_key' => ['nullable', 'string', 'max:255'],
+            'cielo_api_base_url' => ['nullable', 'url', 'max:255'],
+            'stone_api_token' => ['nullable', 'string', 'max:255'],
+            'stone_api_base_url' => ['nullable', 'url', 'max:255'],
+            'rede_api_token' => ['nullable', 'string', 'max:255'],
+            'rede_api_base_url' => ['nullable', 'url', 'max:255'],
+            'getnet_client_id' => ['nullable', 'string', 'max:255'],
+            'getnet_client_secret' => ['nullable', 'string', 'max:255'],
+            'getnet_seller_id' => ['nullable', 'string', 'max:255'],
+            'getnet_api_base_url' => ['nullable', 'url', 'max:255'],
+            'boleto_due_days' => ['nullable', 'integer', 'min:1', 'max:30'],
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->route('paymentSettings')->withErrors($validator)->withInput();
+        }
+
+        $estacionamento = Settings::firstOrCreate(['id' => 1], []);
+        $estacionamento->pix_key = $data['pix_key'] ?? null;
+        $estacionamento->pix_beneficiary_name = $data['pix_beneficiary_name'] ?? null;
+        $estacionamento->pix_city = $data['pix_city'] ?? null;
+        $estacionamento->pix_description = $data['pix_description'] ?? null;
+        $estacionamento->card_machine_instructions = $data['card_machine_instructions'] ?? null;
+        $estacionamento->payment_provider_default = $data['payment_provider_default'] ?? 'manual';
+        $estacionamento->payment_environment = $data['payment_environment'] ?? 'sandbox';
+        $estacionamento->pagbank_token = $data['pagbank_token'] ?? null;
+        $estacionamento->pagbank_api_base_url = $data['pagbank_api_base_url'] ?? null;
+        $estacionamento->cielo_merchant_id = $data['cielo_merchant_id'] ?? null;
+        $estacionamento->cielo_merchant_key = $data['cielo_merchant_key'] ?? null;
+        $estacionamento->cielo_api_base_url = $data['cielo_api_base_url'] ?? null;
+        $estacionamento->stone_api_token = $data['stone_api_token'] ?? null;
+        $estacionamento->stone_api_base_url = $data['stone_api_base_url'] ?? null;
+        $estacionamento->rede_api_token = $data['rede_api_token'] ?? null;
+        $estacionamento->rede_api_base_url = $data['rede_api_base_url'] ?? null;
+        $estacionamento->getnet_client_id = $data['getnet_client_id'] ?? null;
+        $estacionamento->getnet_client_secret = $data['getnet_client_secret'] ?? null;
+        $estacionamento->getnet_seller_id = $data['getnet_seller_id'] ?? null;
+        $estacionamento->getnet_api_base_url = $data['getnet_api_base_url'] ?? null;
+        $estacionamento->boleto_due_days = isset($data['boleto_due_days']) ? (int) $data['boleto_due_days'] : 3;
+        $estacionamento->save();
+
+        return redirect()->route('paymentSettings')->with('create', 'Configuracoes de pagamento atualizadas com sucesso.');
+    }
+
+    public function priceCar()
+    {
+        $priceCar = $this->ensurePriceRecord(PriceCar::class, [
+            'valorHora' => 5,
+            'valorMinimo' => 10,
+            'valorDiaria' => 50,
+            'taxaAdicional' => 17,
+            'taxaMensal' => 400,
+        ]);
+
+        return view('priceCar', [
+            'priceCar' => $priceCar,
+            'route' => 'editPriceCar',
+        ]);
+    }
+
+    public function editPriceCar(Request $req)
+    {
+        return $this->updatePriceRecord(
+            $req,
+            PriceCar::class,
+            'priceCar',
+            'Valores de carros atualizados com sucesso.'
+        );
+    }
+
+    public function priceMotorcycle()
+    {
+        $priceMotorcycle = $this->ensurePriceRecord(PriceMotorcycle::class, [
+            'valorHora' => 1,
+            'valorMinimo' => 5,
+            'valorDiaria' => 14,
+            'taxaAdicional' => 8,
+            'taxaMensal' => 100,
+        ]);
+
+        return view('priceMotorcycle', [
+            'priceMotorcycle' => $priceMotorcycle,
+            'route' => 'editPriceMotorcycle',
+        ]);
+    }
+
+    public function editPriceMotorcycle(Request $req)
+    {
+        return $this->updatePriceRecord(
+            $req,
+            PriceMotorcycle::class,
+            'priceMotorcycle',
+            'Valores de motos atualizados com sucesso.'
+        );
+    }
+
+    public function priceTruck()
+    {
+        $priceTruck = $this->ensurePriceRecord(PriceTruck::class, [
+            'valorHora' => 5,
+            'valorMinimo' => 15,
+            'valorDiaria' => 60,
+            'taxaAdicional' => 20,
+            'taxaMensal' => 600,
+        ]);
+
+        return view('priceTruck', [
+            'priceTruck' => $priceTruck,
+            'route' => 'editPriceTruck',
+        ]);
+    }
+
+    public function editPriceTruck(Request $req)
+    {
+        return $this->updatePriceRecord(
+            $req,
+            PriceTruck::class,
+            'priceTruck',
+            'Valores de caminhonetes atualizados com sucesso.'
+        );
+    }
+
+    private function ensurePriceRecord(string $modelClass, array $defaults)
+    {
+        return $modelClass::query()->firstOrCreate([], $defaults);
+    }
+
+    private function updatePriceRecord(Request $request, string $modelClass, string $routeName, string $successMessage)
+    {
+        $data = $request->only([
             'valorHora',
             'valorMinimo',
             'valorDiaria',
             'taxaAdicional',
-            'taxaMensal'
+            'taxaMensal',
         ]);
 
         $validator = Validator::make($data, [
-            'valorHora'     => [ 'required' ],
-            'valorMinimo'   => [ 'required' ],
-            'valorDiaria'   => [ 'required' ],
-            'taxaAdicional' => [ 'required' ],
-            'taxaMensal'    => [ 'required' ]
+            'valorHora' => ['required', 'numeric', 'min:0'],
+            'valorMinimo' => ['required', 'numeric', 'min:0'],
+            'valorDiaria' => ['required', 'numeric', 'min:0'],
+            'taxaAdicional' => ['required', 'numeric', 'min:0'],
+            'taxaMensal' => ['required', 'numeric', 'min:0'],
         ]);
 
-        if($validator->fails()) {
-            return redirect(route('priceMotorcycle'))->withErrors($validator)->withInput();
+        if ($validator->fails()) {
+            return redirect()->route($routeName)->withErrors($validator)->withInput();
         }
 
-        $priceMotorcycle = PriceMotorcycle::find(1);
-        $priceMotorcycle->valorHora     =  $data['valorHora'];
-        $priceMotorcycle->valorMinimo   =  $data['valorMinimo'];
-        $priceMotorcycle->valorDiaria   =  $data['valorDiaria'];
-        $priceMotorcycle->taxaAdicional =  $data['taxaAdicional'];
-        $priceMotorcycle->taxaMensal    =  $data['taxaMensal'];
-        $priceMotorcycle->update();
+        $priceRecord = $this->ensurePriceRecord($modelClass, []);
+        $priceRecord->fill($data);
+        $priceRecord->save();
 
-        return redirect(route('priceMotorcycle'))->with('create', 'Valores editados com sucesso');
-    }
-
-    public function priceTruck() {
-        $PriceTruck = PriceTruck::find(1);
-        $data['priceTruck'] = $PriceTruck;
-        $data['route'] = 'editPriceTruck';
-        return view('priceTruck', $data);
-    }
-
-    public function editPriceTruck(Request $req) {
-        $data = $req->only([
-            'valorHora',
-            'valorMinimo',
-            'valorDiaria',
-            'taxaAdicional',
-            'taxaMensal'
-        ]);
-
-        $validator = Validator::make($data, [
-            'valorHora'     => [ 'required' ],
-            'valorMinimo'   => [ 'required' ],
-            'valorDiaria'   => [ 'required' ],
-            'taxaAdicional' => [ 'required' ],
-            'taxaMensal'    => [ 'required' ]
-        ]);
-
-        if($validator->fails()) {
-            return redirect(route('priceTruck'))->withErrors($validator)->withInput();
-        }
-
-        $PriceTruck = PriceTruck::find(1);
-        $PriceTruck->valorHora     =  $data['valorHora'];
-        $PriceTruck->valorMinimo   =  $data['valorMinimo'];
-        $PriceTruck->valorDiaria   =  $data['valorDiaria'];
-        $PriceTruck->taxaAdicional =  $data['taxaAdicional'];
-        $PriceTruck->taxaMensal    =  $data['taxaMensal'];
-        $PriceTruck->update();
-
-        return redirect(route('priceTruck'))->with('create', 'Valores editados com sucesso');
+        return redirect()->route($routeName)->with('create', $successMessage);
     }
 }

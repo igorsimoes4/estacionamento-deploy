@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\CarsController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\EstacionamentoController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\MonthlySubscriberController;
+use App\Http\Controllers\MonthlySubscriberAccessController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -40,6 +42,14 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/refresh', [AuthController::class, 'refresh'])->name('refresh');
 
+Route::get('/mensalista/login', [MonthlySubscriberAccessController::class, 'loginForm'])->name('monthly-access.login');
+Route::post('/mensalista/login', [MonthlySubscriberAccessController::class, 'authenticate'])->name('monthly-access.authenticate');
+Route::post('/mensalista/logout', [MonthlySubscriberAccessController::class, 'logout'])->name('monthly-access.logout');
+Route::middleware(['monthly.auth'])->prefix('mensalista')->group(function () {
+    Route::get('/painel', [MonthlySubscriberAccessController::class, 'dashboard'])->name('monthly-access.dashboard');
+    Route::get('/boleto/baixar', [MonthlySubscriberAccessController::class, 'downloadBoleto'])->name('monthly-access.boleto.download');
+});
+
 Route::middleware(['auth.cookie'])->group(function () {
     /*
     |--------------------------------------------------------------------------
@@ -60,7 +70,6 @@ Route::middleware(['auth.cookie'])->group(function () {
 |--------------------------------------------------------------------------
 */
         Route::resource('/cars', CarsController::class);
-        Route::post('/cars/create', [CarsController::class, 'store'])->name('cars.store');
 
 
         /*
@@ -91,6 +100,9 @@ Route::middleware(['auth.cookie'])->group(function () {
 |--------------------------------------------------------------------------
 */
         Route::post('/settings/info', [SettingsController::class, 'editSettings'])->name('editSettings');
+
+        Route::get('/settings/payments', [SettingsController::class, 'paymentSettings'])->name('paymentSettings');
+        Route::post('/settings/payments', [SettingsController::class, 'editPaymentSettings'])->name('editPaymentSettings');
 
         /*
 |--------------------------------------------------------------------------
@@ -140,7 +152,7 @@ Route::middleware(['auth.cookie'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-        Route::post('/cars', [CarsController::class, 'search'])->name('search');
+        Route::match(['get', 'post'], '/cars/search', [CarsController::class, 'search'])->name('cars.search');
 
         /*
 |--------------------------------------------------------------------------
@@ -178,14 +190,30 @@ Route::middleware(['auth.cookie'])->group(function () {
         Route::get('/relatorios/veiculos-cliente/{client_id}', [PDFController::class, 'generatePDFClientVehicles'])->name('generatePDFClientVehicles');
         Route::get('/relatorios/entrada-saida', [PDFController::class, 'generatePDFEntryExit'])->name('generatePDFEntryExit');
         Route::get('/relatorios/financeiro', [PDFController::class, 'generatePDFFinancial'])->name('generatePDFFinancial');
+        Route::get('/relatorios/pagamentos-por-metodo', [PDFController::class, 'generatePDFPaymentMethods'])->name('generatePDFPaymentMethods');
+        Route::get('/relatorios/pagamentos-por-metodo-excel', [PDFController::class, 'generateExcelPaymentMethods'])->name('generateExcelPaymentMethods');
         Route::get('/relatorios/mensalistas-ativos', [PDFController::class, 'generatePDFActiveSubscribers'])->name('generatePDFActiveSubscribers');
         Route::get('/relatorios/ocupacao', [PDFController::class, 'generatePDFParkingOccupancy'])->name('generatePDFParkingOccupancy');
         Route::get('/relatorios/veiculos-estacionados', [PDFController::class, 'generatePDFCurrentlyParked'])->name('generatePDFCurrentlyParked');
         Route::get('/relatorios/infracoes', [PDFController::class, 'generatePDFViolations'])->name('generatePDFViolations');
+        Route::get('/relatorios/finalizados-hoje', [PDFController::class, 'generatePDFFinishedVehiclesToday'])->name('generatePDFFinishedVehiclesToday');
+        Route::get('/relatorios/finalizados-hoje-excel', [PDFController::class, 'generateExcelFinishedVehiclesToday'])->name('generateExcelFinishedVehiclesToday');
+        Route::get('/relatorios/top-faturamento', [PDFController::class, 'generatePDFTopRevenueVehicles'])->name('generatePDFTopRevenueVehicles');
+        Route::get('/relatorios/top-faturamento-excel', [PDFController::class, 'generateExcelTopRevenueVehicles'])->name('generateExcelTopRevenueVehicles');
+        Route::get('/relatorios/faturamento-por-tipo', [PDFController::class, 'generatePDFRevenueByType'])->name('generatePDFRevenueByType');
+        Route::get('/relatorios/faturamento-por-tipo-excel', [PDFController::class, 'generateExcelRevenueByType'])->name('generateExcelRevenueByType');
+        Route::get('/relatorios/movimentacao-diaria', [PDFController::class, 'generatePDFDailyMovement'])->name('generatePDFDailyMovement');
+        Route::get('/relatorios/movimentacao-diaria-excel', [PDFController::class, 'generateExcelDailyMovement'])->name('generateExcelDailyMovement');
+        Route::get('/relatorios/mensalistas-vencendo', [PDFController::class, 'generatePDFExpiringSubscribers'])->name('generatePDFExpiringSubscribers');
+        Route::get('/relatorios/mensalistas-vencendo-excel', [PDFController::class, 'generateExcelExpiringSubscribers'])->name('generateExcelExpiringSubscribers');
+        Route::get('/relatorios/mensalistas-inativos', [PDFController::class, 'generatePDFInactiveSubscribers'])->name('generatePDFInactiveSubscribers');
+        Route::get('/relatorios/mensalistas-inativos-excel', [PDFController::class, 'generateExcelInactiveSubscribers'])->name('generateExcelInactiveSubscribers');
         
         Route::resource('monthly-subscribers', MonthlySubscriberController::class);
         Route::get('get-vehicle-price/{type}', [MonthlySubscriberController::class, 'getVehiclePrice'])
             ->name('get-vehicle-price');
+
+        Route::resource('accounting', AccountingController::class)->except(['show']);
     });
 });
 
