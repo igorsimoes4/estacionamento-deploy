@@ -70,6 +70,13 @@ return [
             'days' => 14,
         ],
 
+        'audit' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/audit.log'),
+            'level' => env('AUDIT_LOG_LEVEL', 'info'),
+            'days' => env('AUDIT_LOG_DAYS', 30),
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

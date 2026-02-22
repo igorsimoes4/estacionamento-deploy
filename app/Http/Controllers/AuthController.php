@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\Audit\AuditLogger;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -31,9 +32,20 @@ class AuthController extends Controller
         $token = Auth::attempt($credentials);
 
         if (!$token) {
+            AuditLogger::log('auth.login_failed', [
+                'level' => 'warning',
+                'description' => 'Tentativa de login administrativo falhou.',
+                'metadata' => ['email' => $credentials['email'] ?? null],
+            ]);
+
             Session::flash('error', 'Email e/ou senha invalidos.');
             return redirect()->route('login')->withInput($request->only('email'));
         }
+
+        AuditLogger::log('auth.login_success', [
+            'description' => 'Login administrativo efetuado com sucesso.',
+            'metadata' => ['email' => $credentials['email'] ?? null],
+        ]);
 
         $cookie = cookie(
             'auth_token',
@@ -64,6 +76,13 @@ class AuthController extends Controller
             'password' => Hash::make($payload['password']),
         ]);
 
+        AuditLogger::log('auth.user_registered', [
+            'description' => 'Novo usuario administrativo cadastrado.',
+            'subject_type' => User::class,
+            'subject_id' => (string) $user->id,
+            'new_values' => ['name' => $user->name, 'email' => $user->email],
+        ]);
+
         $token = Auth::login($user);
 
         $cookie = cookie('auth_token', $token, 60, null, null, $request->isSecure(), true, false, 'Lax');
@@ -73,11 +92,19 @@ class AuthController extends Controller
 
     public function logout()
     {
+        $userId = Auth::id();
+
         try {
             Auth::logout();
         } catch (\Throwable $e) {
             // Ignore token errors and continue logout flow.
         }
+
+        AuditLogger::log('auth.logout', [
+            'description' => 'Logout administrativo efetuado.',
+            'subject_type' => User::class,
+            'subject_id' => $userId ? (string) $userId : null,
+        ]);
 
         return redirect()->route('login')->withCookie(Cookie::forget('auth_token'));
     }

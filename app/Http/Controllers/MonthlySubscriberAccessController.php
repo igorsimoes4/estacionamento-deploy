@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MonthlySubscriber;
 use App\Models\Settings;
+use App\Services\Audit\AuditLogger;
 use App\Services\Payments\MonthlySubscriberBoletoService;
 use App\Support\ItfBarcode;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
@@ -41,18 +42,38 @@ class MonthlySubscriberAccessController extends Controller
             ->first();
 
         if (!$subscriber || !$subscriber->access_enabled || empty($subscriber->access_password)) {
+            AuditLogger::log('monthly_access.login_failed', [
+                'level' => 'warning',
+                'description' => 'Tentativa de login mensalista sem acesso configurado.',
+                'metadata' => ['cpf' => $cpfDigits],
+            ]);
+
             return back()
                 ->withInput($request->only('cpf'))
                 ->withErrors(['cpf' => 'Acesso nao configurado para este mensalista.']);
         }
 
         if (!$subscriber->is_active) {
+            AuditLogger::log('monthly_access.login_failed', [
+                'level' => 'warning',
+                'description' => 'Tentativa de login mensalista com conta inativa.',
+                'subject_type' => MonthlySubscriber::class,
+                'subject_id' => (string) $subscriber->id,
+            ]);
+
             return back()
                 ->withInput($request->only('cpf'))
                 ->withErrors(['cpf' => 'Mensalidade inativa. Procure a administracao.']);
         }
 
         if (!Hash::check((string) $credentials['access_password'], (string) $subscriber->access_password)) {
+            AuditLogger::log('monthly_access.login_failed', [
+                'level' => 'warning',
+                'description' => 'Tentativa de login mensalista com senha invalida.',
+                'subject_type' => MonthlySubscriber::class,
+                'subject_id' => (string) $subscriber->id,
+            ]);
+
             return back()
                 ->withInput($request->only('cpf'))
                 ->withErrors(['access_password' => 'CPF ou senha invalidos.']);
@@ -64,6 +85,12 @@ class MonthlySubscriberAccessController extends Controller
         $subscriber->forceFill([
             'access_last_login_at' => now(),
         ])->save();
+
+        AuditLogger::log('monthly_access.login_success', [
+            'description' => 'Login mensalista efetuado com sucesso.',
+            'subject_type' => MonthlySubscriber::class,
+            'subject_id' => (string) $subscriber->id,
+        ]);
 
         return redirect()->route('monthly-access.dashboard');
     }
@@ -115,9 +142,17 @@ class MonthlySubscriberAccessController extends Controller
 
     public function logout(Request $request): RedirectResponse
     {
+        $subscriberId = (int) $request->session()->get(self::SESSION_KEY, 0);
+
         $request->session()->forget(self::SESSION_KEY);
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        AuditLogger::log('monthly_access.logout', [
+            'description' => 'Logout mensalista efetuado.',
+            'subject_type' => MonthlySubscriber::class,
+            'subject_id' => $subscriberId > 0 ? (string) $subscriberId : null,
+        ]);
 
         return redirect()
             ->route('monthly-access.login')
