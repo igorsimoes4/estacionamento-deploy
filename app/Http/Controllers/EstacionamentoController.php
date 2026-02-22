@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Cars;
 use App\Models\MonthlySubscriber;
 use Carbon\Carbon;
@@ -18,6 +19,20 @@ class EstacionamentoController extends Controller
     public function index()
     {
         $today = Carbon::today();
+        $periodMap = [
+            '1d' => ['days' => 1, 'label' => 'Hoje'],
+            '7d' => ['days' => 7, 'label' => 'Ultimos 7 dias'],
+            '30d' => ['days' => 30, 'label' => 'Ultimos 30 dias'],
+            '90d' => ['days' => 90, 'label' => 'Ultimos 90 dias'],
+        ];
+        $selectedPeriod = request()->query('period', '30d');
+        if (!isset($periodMap[$selectedPeriod])) {
+            $selectedPeriod = '30d';
+        }
+
+        $periodDays = $periodMap[$selectedPeriod]['days'];
+        $periodLabel = $periodMap[$selectedPeriod]['label'];
+        $periodStart = Carbon::now()->subDays($periodDays - 1)->startOfDay();
         $startOfMonth = Carbon::now()->startOfMonth();
 
         $data = [];
@@ -36,7 +51,7 @@ class EstacionamentoController extends Controller
             ->take(10)
             ->get();
 
-        $last30Days = Carbon::now()->subDays(30);
+        $last30Days = $periodStart;
         $carPie = [
             'carro' => Cars::where('tipo_car', 'carro')->where('created_at', '>=', $last30Days)->count(),
             'moto' => Cars::where('tipo_car', 'moto')->where('created_at', '>=', $last30Days)->count(),
@@ -136,7 +151,84 @@ class EstacionamentoController extends Controller
             $data['revenue_services_pct'] = 0;
         }
 
+        $totalOperacionalVagas = self::TOTAL_SPOTS['carro'] + self::TOTAL_SPOTS['moto'] + self::TOTAL_SPOTS['caminhonete'];
+        $ocupacaoAtual = $data['car_parking'] + $data['moto_parking'] + $data['caminhonete_parking'];
+
+        $data['occupancy_by_type'] = [
+            'carro' => [
+                'used' => $data['car_parking'],
+                'capacity' => self::TOTAL_SPOTS['carro'],
+                'percent' => self::percent($data['car_parking'], self::TOTAL_SPOTS['carro']),
+            ],
+            'moto' => [
+                'used' => $data['moto_parking'],
+                'capacity' => self::TOTAL_SPOTS['moto'],
+                'percent' => self::percent($data['moto_parking'], self::TOTAL_SPOTS['moto']),
+            ],
+            'caminhonete' => [
+                'used' => $data['caminhonete_parking'],
+                'capacity' => self::TOTAL_SPOTS['caminhonete'],
+                'percent' => self::percent($data['caminhonete_parking'], self::TOTAL_SPOTS['caminhonete']),
+            ],
+        ];
+
+        $data['occupancy_total_percent'] = self::percent($ocupacaoAtual, $totalOperacionalVagas);
+        $data['occupancy_total_used'] = $ocupacaoAtual;
+        $data['occupancy_total_capacity'] = $totalOperacionalVagas;
+
+        $data['expiring_subscribers_count'] = MonthlySubscriber::query()
+            ->whereDate('end_date', '>=', $today)
+            ->whereDate('end_date', '<=', $today->copy()->addDays(7))
+            ->count();
+
+        $data['overdue_subscribers_count'] = MonthlySubscriber::query()
+            ->whereDate('end_date', '<', $today)
+            ->count();
+
+        $data['expiring_subscribers'] = MonthlySubscriber::query()
+            ->whereDate('end_date', '>=', $today)
+            ->whereDate('end_date', '<=', $today->copy()->addDays(10))
+            ->orderBy('end_date')
+            ->limit(6)
+            ->get(['id', 'name', 'vehicle_plate', 'end_date', 'monthly_fee']);
+
+        $data['recent_activity'] = ActivityLog::query()
+            ->where('created_at', '>=', $periodStart)
+            ->orderByDesc('id')
+            ->limit(8)
+            ->get(['event', 'description', 'request_path', 'created_at', 'level']);
+
+        $data['period_options'] = [
+            '1d' => 'Hoje',
+            '7d' => '7 dias',
+            '30d' => '30 dias',
+            '90d' => '90 dias',
+        ];
+        $data['selected_period'] = $selectedPeriod;
+        $data['period_label'] = $periodLabel;
+        $data['period_entries'] = Cars::query()
+            ->where('created_at', '>=', $periodStart)
+            ->count();
+        $data['period_exits'] = Cars::finished()
+            ->where('saida', '>=', $periodStart)
+            ->count();
+        $data['period_revenue'] = (float) Cars::finished()
+            ->where('saida', '>=', $periodStart)
+            ->sum('preco');
+        $data['period_ticket_avg'] = (float) Cars::finished()
+            ->where('saida', '>=', $periodStart)
+            ->avg('preco');
+
         return view('home', compact('data'));
+    }
+
+    private static function percent(int|float $used, int|float $capacity): int
+    {
+        if ($capacity <= 0) {
+            return 0;
+        }
+
+        return (int) max(0, min(100, round(($used / $capacity) * 100)));
     }
 
     private function countVehiclesByTypeAndPeriod(string $type, Carbon $startDate, Carbon $endDate): int

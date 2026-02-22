@@ -290,90 +290,124 @@ return [
     | https://github.com/jeroennoten/Laravel-AdminLTE/wiki/Menu-Configuration
     |
     */
-
     'menu' => [
-        // Navbar items:
         [
-            'type'         => 'fullscreen-widget',
+            'type' => 'fullscreen-widget',
             'topnav_right' => true,
         ],
-
-        // Sidebar items:
-        ['header' => 'Home'],
+        ['header' => 'Painel'],
         [
-            'text'        => 'Dashboard',
-            'url'         => 'painel',
-            'icon'        => 'fa fa-fw fa-home'
+            'text' => 'Dashboard',
+            'url' => 'painel',
+            'icon' => 'fa fa-fw fa-home',
         ],
-        ['header' => 'Estacinamento'],
+        ['header' => 'Operação'],
         [
             'text' => 'Carros Estacionados',
-            'url'  => 'painel/cars',
-            'icon' => 'fa fa-fw fa-parking'
+            'url' => 'painel/cars',
+            'icon' => 'fa fa-fw fa-parking',
+            'can' => 'role-admin-operador',
+        ],
+        [
+            'text' => 'Mapa de Vagas',
+            'url' => 'painel/operacao/mapa',
+            'icon' => 'fas fa-fw fa-th',
+            'can' => 'role-admin-operador',
+        ],
+        [
+            'text' => 'Reservas',
+            'url' => 'painel/reservas',
+            'icon' => 'fas fa-fw fa-calendar-check',
+            'can' => 'role-admin-operador',
+        ],
+        [
+            'text' => 'Caixa por Turno',
+            'url' => 'painel/caixa-turno',
+            'icon' => 'fas fa-fw fa-cash-register',
+            'can' => 'role-admin-operador',
         ],
         [
             'text' => 'Mensalistas',
-            'url'  => 'painel/monthly-subscribers',
-            'icon' => 'fas fa-fw fa-users'
+            'url' => 'painel/monthly-subscribers',
+            'icon' => 'fas fa-fw fa-users',
         ],
         [
             'text' => 'Contabilidade',
-            'url'  => 'painel/accounting',
-            'icon' => 'fas fa-fw fa-calculator'
+            'url' => 'painel/accounting',
+            'icon' => 'fas fa-fw fa-calculator',
+            'can' => 'role-admin-financeiro',
         ],
         [
-            'header' => 'Relatórios',
+            'text' => 'Financeiro Avançado',
+            'url' => 'painel/operacao/financeiro',
+            'icon' => 'fas fa-fw fa-file-invoice-dollar',
+            'can' => 'role-admin-financeiro',
         ],
         [
-            'text'    => 'Todos Relatórios',
-            'icon'    => 'fa fa-fw fa-folder',
-            'url'     => 'painel/relatorios',
+            'text' => 'Notificações',
+            'url' => 'painel/notificacoes',
+            'icon' => 'fas fa-fw fa-bell',
+            'can' => 'role-admin-financeiro',
+        ],
+        [
+            'text' => 'Integrações e Saúde',
+            'url' => 'painel/integracoes',
+            'icon' => 'fas fa-fw fa-plug',
+            'can' => 'role-admin',
+        ],
+        [
+            'text' => 'Auditoria',
+            'url' => 'painel/auditoria',
+            'icon' => 'fas fa-fw fa-clipboard-list',
+            'can' => 'role-admin-financeiro',
+        ],
+        ['header' => 'Relatórios'],
+        [
+            'text' => 'Todos Relatórios',
+            'icon' => 'fa fa-fw fa-folder',
+            'url' => 'painel/relatorios',
         ],
         ['header' => 'Configurações'],
         [
             'text' => 'Estacionamento',
-            'url'  => 'painel/settings',
+            'url' => 'painel/settings',
             'icon' => 'fas fa-fw fa-info-circle',
+            'can' => 'role-admin',
         ],
         [
             'text' => 'Pagamentos',
-            'url'  => 'painel/settings/payments',
+            'url' => 'painel/settings/payments',
             'icon' => 'fas fa-fw fa-credit-card',
+            'can' => 'role-admin',
         ],
         [
-            'text'    => 'Preços',
-            'icon'    => 'fas fa-fw fa-cash-register',
+            'text' => 'Preços',
+            'icon' => 'fas fa-fw fa-tags',
+            'can' => 'role-admin',
             'submenu' => [
                 [
                     'text' => 'Preços Carros',
-                    'url'  => 'painel/settings/price-car',
+                    'url' => 'painel/settings/price-car',
                     'icon' => 'fas fa-fw fa-car',
                 ],
                 [
                     'text' => 'Preços Motos',
-                    'url'  => 'painel/settings/price-motorcycle',
+                    'url' => 'painel/settings/price-motorcycle',
                     'icon' => 'fas fa-fw fa-motorcycle',
                 ],
                 [
                     'text' => 'Preços Caminhonetes',
-                    'url'  => 'painel/settings/price-truck',
+                    'url' => 'painel/settings/price-truck',
                     'icon' => 'fas fa-fw fa-truck-pickup',
+                ],
+                [
+                    'text' => 'Preço Dinâmico',
+                    'url' => 'painel/settings/dynamic-pricing',
+                    'icon' => 'fas fa-fw fa-chart-line',
                 ],
             ],
         ],
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Menu Filters
-    |--------------------------------------------------------------------------
-    |
-    | Here we can modify the menu filters of the admin panel.
-    |
-    | For detailed instructions you can look the menu filters section here:
-    | https://github.com/jeroennoten/Laravel-AdminLTE/wiki/Menu-Configuration
-    |
-    */
 
     'filters' => [
         JeroenNoten\LaravelAdminLte\Menu\Filters\GateFilter::class,
@@ -532,3 +566,4 @@ return [
 
     'livewire' => true,
 ];
+

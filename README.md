@@ -19,6 +19,22 @@ Em desenvolvimento ativo.
 - Cadastro, edicao e finalizacao de veiculos.
 - Calculo de preco por tipo de veiculo (carro, moto, caminhonete).
 - Tela principal em Livewire com filtros, ordenacao e atualizacao dinamica.
+- Alocacao de vaga por setor (automatico ou manual) com mapa visual do patio.
+- API para entrada/saida integrada com cancela/catraca.
+- Endpoint de ingestao ANPR/OCR para leitura automatica de placa.
+
+### Reservas e patio
+- Reserva antecipada de vaga com check-in operacional.
+- Controle de status da vaga: livre, reservada, ocupada, bloqueada e manutencao.
+- Dashboard de ocupacao em tempo real por setor.
+
+### Precificacao dinamica
+- Regras por:
+  - horario
+  - dia da semana
+  - tipo de veiculo
+  - faixa de lotacao
+- Multiplicador e acrescimo fixo configuraveis.
 
 ### Checkout e pagamentos
 - Metodos: dinheiro, Pix, cartao credito/debito e boleto.
@@ -36,10 +52,27 @@ Em desenvolvimento ativo.
 - Acesso separado para mensalista (`/mensalista/login`).
 - Portal do mensalista com dados da assinatura e download de boleto.
 - Boleto do mensalista com codigo de barras no PDF.
+- Cobranca recorrente automatica por competencia.
+- Controle de inadimplencia com multa, juros e bloqueio de acesso.
 
 ### Relatorios e contabilidade
 - Relatorios PDF/CSV para operacao, faturamento e ocupacao.
 - Modulo de contabilidade para lancamentos e consolidacao financeira.
+- Controle de caixa por turno (abertura, movimentacoes, sangria, fechamento e divergencia).
+- Conciliação de pagamentos por webhook (Pix/cartao/boleto).
+- Emissao fiscal (NFS-e/NFC-e) com registro de status por transacao.
+
+### Seguranca e governanca
+- Permissoes por perfil administrativo:
+  - admin
+  - operador
+  - financeiro
+- Auditoria completa de requisicoes e alteracoes de dados.
+- Central de notificacoes (fila de e-mail/WhatsApp).
+
+### Saude e continuidade
+- Health checks persistidos (banco, storage, fila, integracoes).
+- Rotina de backup operacional automatizada.
 
 ### Configuracoes
 - Configuracoes separadas em:
@@ -107,11 +140,35 @@ Acesse no painel:
 
 Preencha credenciais e ambiente (`sandbox` ou `production`) para cada gateway.
 
+## API de integracao (v1)
+- `POST /api/payments/webhooks/{provider}` webhook de conciliacao.
+- `GET /api/v1/status` status operacional.
+- `POST /api/v1/gate/entry` registrar entrada via integracao.
+- `POST /api/v1/gate/exit` registrar saida via integracao.
+- `POST /api/v1/anpr/ingest` ingestao ANPR/OCR.
+- `GET /api/v1/health` saude da aplicacao (com `?run=1` para executar checks).
+
+Autenticacao das rotas `api/v1/*`:
+- header `Authorization: Bearer <INTEGRATION_API_TOKEN>`
+ou
+- header `X-Integration-Token: <INTEGRATION_API_TOKEN>`
+
 ## Comandos uteis
 ```bash
 php artisan optimize:clear
 php artisan route:list
 php artisan migrate:status
+php artisan parking:billing-run
+php artisan parking:delinquency-run
+php artisan parking:notifications-run --limit=200
+php artisan system:health-check
+php artisan system:backup-run
+```
+
+## Agendamento (cron)
+No servidor, configure:
+```bash
+* * * * * cd /caminho/do/projeto && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 ## Observacoes

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
@@ -40,6 +41,12 @@ class MonthlySubscriber extends Model
         'boleto_amount_cents',
         'boleto_status',
         'boleto_generated_at',
+        'auto_renew_enabled',
+        'recurring_payment_method',
+        'delinquent_since',
+        'blocked_at',
+        'late_fee_percent',
+        'daily_interest_percent',
     ];
 
     protected $casts = [
@@ -52,6 +59,11 @@ class MonthlySubscriber extends Model
         'boleto_due_date' => 'date',
         'boleto_generated_at' => 'datetime',
         'boleto_amount_cents' => 'integer',
+        'auto_renew_enabled' => 'boolean',
+        'delinquent_since' => 'date',
+        'blocked_at' => 'datetime',
+        'late_fee_percent' => 'decimal:2',
+        'daily_interest_percent' => 'decimal:3',
     ];
 
     protected $hidden = [
@@ -113,5 +125,15 @@ class MonthlySubscriber extends Model
     public function hasPortalAccessConfigured(): bool
     {
         return $this->access_enabled && !empty($this->access_password);
+    }
+
+    public function billingCycles(): HasMany
+    {
+        return $this->hasMany(MonthlyBillingCycle::class);
+    }
+
+    public function paymentTransactions(): HasMany
+    {
+        return $this->hasMany(PaymentTransaction::class);
     }
 } 

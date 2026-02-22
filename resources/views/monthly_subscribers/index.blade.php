@@ -59,6 +59,8 @@
                                     <th>Tipo</th>
                                     <th>Status</th>
                                     <th>Acesso</th>
+                                    <th>Recorrência</th>
+                                    <th>Inadimplência</th>
                                     <th>Vencimento</th>
                                     <th>Acoes</th>
                                 </tr>
@@ -85,6 +87,22 @@
                                                 <span class="badge bg-warning text-dark">Pendente</span>
                                             @endif
                                         </td>
+                                        <td>
+                                            <span class="badge {{ $subscriber->auto_renew_enabled ? 'bg-success' : 'bg-secondary' }}">
+                                                {{ $subscriber->auto_renew_enabled ? 'Auto' : 'Manual' }}
+                                            </span>
+                                            <div class="small text-muted">
+                                                {{ $subscriber->recurring_payment_method ? strtoupper(str_replace('_', ' ', $subscriber->recurring_payment_method)) : 'BOLETO' }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if ($subscriber->delinquent_since)
+                                                <span class="badge bg-danger">Em atraso</span>
+                                                <div class="small text-muted">desde {{ optional($subscriber->delinquent_since)->format('d/m/Y') }}</div>
+                                            @else
+                                                <span class="badge bg-success">Em dia</span>
+                                            @endif
+                                        </td>
                                         <td>{{ optional($subscriber->end_date)->format('d/m/Y') }}</td>
                                         <td>
                                             <div class="btn-group">
@@ -107,7 +125,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9" class="text-center">Nenhum mensalista cadastrado.</td>
+                                        <td colspan="11" class="text-center">Nenhum mensalista cadastrado.</td>
                                     </tr>
                                 @endforelse
                             </tbody>

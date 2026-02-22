@@ -42,6 +42,13 @@ class AuthController extends Controller
             return redirect()->route('login')->withInput($request->only('email'));
         }
 
+        $user = Auth::user();
+        if ($user && !$user->is_active) {
+            Auth::logout();
+            Session::flash('error', 'Usuario inativo. Procure o administrador.');
+            return redirect()->route('login')->withInput($request->only('email'));
+        }
+
         AuditLogger::log('auth.login_success', [
             'description' => 'Login administrativo efetuado com sucesso.',
             'metadata' => ['email' => $credentials['email'] ?? null],
@@ -68,12 +75,15 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6',
+            'role' => 'nullable|in:admin,operador,financeiro',
         ]);
 
         $user = User::create([
             'name' => $payload['name'],
             'email' => $payload['email'],
             'password' => Hash::make($payload['password']),
+            'role' => $payload['role'] ?? User::ROLE_ADMIN,
+            'is_active' => true,
         ]);
 
         AuditLogger::log('auth.user_registered', [

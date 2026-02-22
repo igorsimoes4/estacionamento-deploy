@@ -3,10 +3,13 @@
 namespace App\Http\Livewire;
 
 use App\Models\Cars;
+use App\Models\PaymentTransaction;
 use App\Models\PriceCar;
 use App\Models\PriceMotorcycle;
 use App\Models\PriceTruck;
 use App\Models\Settings;
+use App\Services\Parking\DynamicPricingService;
+use App\Services\Parking\ParkingSpotAllocatorService;
 use App\Services\Payments\CheckoutGatewayService;
 use App\Support\ItfBarcode;
 use Carbon\Carbon;
@@ -306,6 +309,23 @@ class VehiclesTable extends Component
         $car->paid_at = now();
         $car->save();
 
+        PaymentTransaction::query()->create([
+            'reference' => 'CAR-' . $car->id . '-' . now()->format('YmdHis'),
+            'provider' => $car->payment_provider ?: 'manual',
+            'method' => $car->payment_method ?: 'dinheiro',
+            'status' => 'paid',
+            'type' => 'one_time',
+            'amount_cents' => (int) round(((float) $car->preco) * 100),
+            'currency' => 'BRL',
+            'car_id' => $car->id,
+            'external_id' => $car->external_payment_id,
+            'payment_url' => $car->payment_url,
+            'paid_at' => now(),
+            'reconciled_at' => now(),
+        ]);
+
+        app(ParkingSpotAllocatorService::class)->releaseSpotByCar($car);
+
         $methodLabel = Cars::paymentMethodLabel($this->checkoutMethod);
         $providerLabel = Cars::paymentProviderLabel($this->checkoutProvider);
         $this->resetCheckoutState();
@@ -330,6 +350,21 @@ class VehiclesTable extends Component
         $car->payment_status = 'paid';
         $car->paid_at = now();
         $car->save();
+
+        PaymentTransaction::query()->create([
+            'reference' => 'CAR-' . $car->id . '-' . now()->format('YmdHis'),
+            'provider' => $car->payment_provider ?: 'manual',
+            'method' => $car->payment_method ?: 'dinheiro',
+            'status' => 'paid',
+            'type' => 'one_time',
+            'amount_cents' => (int) round(((float) $car->preco) * 100),
+            'currency' => 'BRL',
+            'car_id' => $car->id,
+            'paid_at' => now(),
+            'reconciled_at' => now(),
+        ]);
+
+        app(ParkingSpotAllocatorService::class)->releaseSpotByCar($car);
 
         session()->flash('create', 'Veiculo finalizado com sucesso.');
     }
@@ -488,7 +523,9 @@ class VehiclesTable extends Component
             }
         }
 
-        return round($amount, 2);
+        $amount = round($amount, 2);
+
+        return app(DynamicPricingService::class)->apply($amount, (string) $car->tipo_car, $entryAt, $exitAt);
     }
 
     private function priceProfile(string $type): array

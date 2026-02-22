@@ -6,6 +6,7 @@ use App\Models\MonthlySubscriber;
 use App\Models\PriceCar;
 use App\Models\PriceMotorcycle;
 use App\Models\PriceTruck;
+use App\Services\Parking\RecurringBillingService;
 use App\Services\Payments\MonthlySubscriberBoletoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -41,6 +42,8 @@ class MonthlySubscriberController extends Controller
         $rules = MonthlySubscriber::rules();
         $rules['access_enabled'] = ['nullable', 'boolean'];
         $rules['access_password'] = ['required', 'string', 'min:6', 'confirmed'];
+        $rules['auto_renew_enabled'] = ['nullable', 'boolean'];
+        $rules['recurring_payment_method'] = ['nullable', 'in:boleto,pix,cartao_credito,cartao_debito'];
 
         $validated = validator($payload, $rules)->validate();
         $subscriber = null;
@@ -68,6 +71,8 @@ class MonthlySubscriberController extends Controller
                 if ($warningText !== '') {
                     $boletoWarning = 'Mensalista cadastrado. Boleto em modo manual: ' . $warningText;
                 }
+
+                app(RecurringBillingService::class)->run(now()->format('Y-m'));
             } catch (\Throwable $e) {
                 $boletoWarning = 'Mensalista cadastrado, mas houve falha ao gerar boleto automaticamente.';
             }
@@ -102,6 +107,8 @@ class MonthlySubscriberController extends Controller
         $rules['vehicle_plate'] = ['required', 'string', Rule::unique('monthly_subscribers', 'vehicle_plate')->ignore($monthlySubscriber->id)];
         $rules['access_enabled'] = ['nullable', 'boolean'];
         $rules['access_password'] = ['nullable', 'string', 'min:6', 'confirmed'];
+        $rules['auto_renew_enabled'] = ['nullable', 'boolean'];
+        $rules['recurring_payment_method'] = ['nullable', 'in:boleto,pix,cartao_credito,cartao_debito'];
 
         $validated = validator($payload, $rules)->validate();
 
@@ -192,6 +199,7 @@ class MonthlySubscriberController extends Controller
         }
 
         $payload['access_enabled'] = $request->boolean('access_enabled', true);
+        $payload['auto_renew_enabled'] = $request->boolean('auto_renew_enabled', true);
 
         return $payload;
     }

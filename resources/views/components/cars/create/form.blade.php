@@ -42,6 +42,21 @@
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="small text-uppercase font-weight-bold">Setor</label>
+            <select class="form-control @error('parking_sector_id') is-invalid @enderror" name="parking_sector_id">
+                <option value="">Alocar automaticamente</option>
+                @foreach (($sectors ?? collect()) as $sector)
+                    <option value="{{ $sector->id }}" {{ (string) old('parking_sector_id') === (string) $sector->id ? 'selected' : '' }}>
+                        {{ $sector->name }} ({{ $sector->code }})
+                    </option>
+                @endforeach
+            </select>
+            @error('parking_sector_id')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
     </div>
 
     <div class="d-flex justify-content-between align-items-center mt-2">

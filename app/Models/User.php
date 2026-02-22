@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -11,6 +12,10 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject {
     use HasApiTokens, HasFactory, Notifiable;
+
+    public const ROLE_ADMIN = 'admin';
+    public const ROLE_OPERATOR = 'operador';
+    public const ROLE_FINANCIAL = 'financeiro';
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +26,8 @@ class User extends Authenticatable implements JWTSubject {
         'name',
         'email',
         'password',
+        'role',
+        'is_active',
     ];
 
     /**
@@ -40,6 +47,7 @@ class User extends Authenticatable implements JWTSubject {
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_active' => 'boolean',
     ];
 
 
@@ -51,5 +59,21 @@ class User extends Authenticatable implements JWTSubject {
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return strtolower((string) ($this->role ?: self::ROLE_ADMIN)) === strtolower($role);
+    }
+
+    public function hasAnyRole(array $roles): bool
+    {
+        $normalized = array_map(static fn ($role) => strtolower((string) $role), $roles);
+        return in_array(strtolower((string) ($this->role ?: self::ROLE_ADMIN)), $normalized, true);
+    }
+
+    public function cashShifts(): HasMany
+    {
+        return $this->hasMany(CashShift::class);
     }
 }

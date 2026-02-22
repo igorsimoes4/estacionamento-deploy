@@ -15,7 +15,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('parking:billing-run')->dailyAt('07:00');
+        $schedule->command('parking:delinquency-run')->dailyAt('08:00');
+        $schedule->command('parking:notifications-run --limit=200')->everyTenMinutes();
+        $schedule->command('system:health-check')->hourly();
+        $schedule->command('system:backup-run')->dailyAt('02:30');
     }
 
     /**

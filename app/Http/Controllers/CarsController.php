@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cars;
+use App\Models\ParkingSector;
+use App\Models\PaymentTransaction;
 use App\Models\PriceCar;
 use App\Models\PriceMotorcycle;
 use App\Models\PriceTruck;
+use App\Services\Parking\DynamicPricingService;
+use App\Services\Parking\ParkingSpotAllocatorService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -113,7 +117,8 @@ class CarsController extends Controller
 
     public function create()
     {
-        return view('cars_add');
+        $sectors = ParkingSector::query()->where('is_active', true)->orderBy('name')->get();
+        return view('cars_add', compact('sectors'));
     }
 
     public function store(Request $request)
@@ -123,6 +128,7 @@ class CarsController extends Controller
             'placa',
             'entrada',
             'tipo_car',
+            'parking_sector_id',
         ]);
 
         $validator = Validator::make($data, [
@@ -130,6 +136,7 @@ class CarsController extends Controller
             'placa' => ['required', 'string', 'max:8'],
             'entrada' => ['nullable', 'date'],
             'tipo_car' => ['required', Rule::in(self::VEHICLE_TYPES)],
+            'parking_sector_id' => ['nullable', 'integer', 'exists:parking_sectors,id'],
         ]);
 
         if ($validator->fails()) {
@@ -155,6 +162,8 @@ class CarsController extends Controller
         $car->placa = $normalizedPlate;
         $car->entrada = Carbon::parse($data['entrada'] ?? now())->format('H:i:s');
         $car->tipo_car = $data['tipo_car'];
+        $car->parking_sector_id = isset($data['parking_sector_id']) ? (int) $data['parking_sector_id'] : null;
+        $car->entry_source = 'manual';
         $car->preco = 0;
 
         if (!empty($data['entrada'])) {
@@ -162,6 +171,8 @@ class CarsController extends Controller
         }
 
         $car->save();
+
+        app(ParkingSpotAllocatorService::class)->occupySpotForCar($car, $car->parking_sector_id);
 
         Log::info('Veiculo adicionado', ['placa' => $car->placa, 'id' => $car->id]);
 
@@ -210,8 +221,9 @@ class CarsController extends Controller
         $car = Cars::findOrFail($id);
 
         $car->price = $this->priceForCar($car);
+        $sectors = ParkingSector::query()->where('is_active', true)->orderBy('name')->get();
 
-        return view('cars_edit', ['car' => $car]);
+        return view('cars_edit', ['car' => $car, 'sectors' => $sectors]);
     }
 
     public function update(Request $request, $id)
@@ -223,6 +235,7 @@ class CarsController extends Controller
             'placa',
             'entrada',
             'tipo_car',
+            'parking_sector_id',
         ]);
 
         $validator = Validator::make($data, [
@@ -230,6 +243,7 @@ class CarsController extends Controller
             'placa' => ['required', 'string', 'max:8'],
             'entrada' => ['nullable', 'date'],
             'tipo_car' => ['required', Rule::in(self::VEHICLE_TYPES)],
+            'parking_sector_id' => ['nullable', 'integer', 'exists:parking_sectors,id'],
         ]);
 
         if ($validator->fails()) {
@@ -258,6 +272,7 @@ class CarsController extends Controller
         $car->modelo = $data['modelo'];
         $car->placa = $normalizedPlate;
         $car->tipo_car = $data['tipo_car'];
+        $car->parking_sector_id = isset($data['parking_sector_id']) ? (int) $data['parking_sector_id'] : $car->parking_sector_id;
 
         if (!empty($data['entrada'])) {
             $entryDate = Carbon::parse($data['entrada']);
@@ -298,6 +313,23 @@ class CarsController extends Controller
         $car->paid_at = $exitAt;
         $car->save();
 
+        app(ParkingSpotAllocatorService::class)->releaseSpotByCar($car);
+
+        PaymentTransaction::query()->create([
+            'reference' => 'CAR-' . $car->id . '-' . now()->format('YmdHis'),
+            'provider' => $car->payment_provider ?: 'manual',
+            'method' => $car->payment_method ?: 'dinheiro',
+            'status' => 'paid',
+            'type' => 'one_time',
+            'amount_cents' => (int) round(((float) $car->preco) * 100),
+            'currency' => 'BRL',
+            'car_id' => $car->id,
+            'external_id' => $car->external_payment_id,
+            'payment_url' => $car->payment_url,
+            'paid_at' => $exitAt,
+            'reconciled_at' => $exitAt,
+        ]);
+
         Log::info('Veiculo finalizado', ['id' => $car->id, 'placa' => $car->placa, 'valor' => $price]);
 
         return redirect()->route('cars.index')->with('create', 'Veiculo finalizado com sucesso.');
@@ -320,10 +352,10 @@ class CarsController extends Controller
         $entryAt = Carbon::parse($car->created_at);
         $exitAt = $car->saida ? Carbon::parse($car->saida) : now();
 
-        return $this->calculatePrice($entryAt, $exitAt, $prices, $car->id);
+        return $this->calculatePrice($entryAt, $exitAt, $prices, $car->id, (string) $car->tipo_car);
     }
 
-    private function calculatePrice(Carbon $entryAt, Carbon $exitAt, Collection $prices, int $carId): float
+    private function calculatePrice(Carbon $entryAt, Carbon $exitAt, Collection $prices, int $carId, string $vehicleType): float
     {
         $minutes = max(1, $entryAt->diffInMinutes($exitAt));
         $totalDays = intdiv($minutes, 1440);
@@ -356,6 +388,7 @@ class CarsController extends Controller
         }
 
         $amount = round($amount, 2);
+        $amount = app(DynamicPricingService::class)->apply($amount, $vehicleType, $entryAt, $exitAt);
 
         Log::info('Calculo de preco executado', [
             'car_id' => $carId,

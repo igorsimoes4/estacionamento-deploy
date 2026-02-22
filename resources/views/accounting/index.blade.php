@@ -158,7 +158,7 @@
             </div>
 
             <div class="mt-2">
-                {{ $entries->links() }}
+                {{ $entries->onEachSide(1)->links('pagination::bootstrap-4') }}
             </div>
         </div>
     </div>

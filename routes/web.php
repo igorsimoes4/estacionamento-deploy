@@ -2,11 +2,19 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AccountingController;
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\CarsController;
+use App\Http\Controllers\CashShiftController;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\DynamicPricingRuleController;
 use App\Http\Controllers\EstacionamentoController;
+use App\Http\Controllers\IntegrationController;
 use App\Http\Controllers\PDFController;
 use App\Http\Controllers\PembayaranController;
+use App\Http\Controllers\NotificationCenterController;
+use App\Http\Controllers\OperationsFinanceController;
+use App\Http\Controllers\ParkingOperationsController;
+use App\Http\Controllers\ParkingReservationController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\MonthlySubscriberController;
@@ -69,7 +77,7 @@ Route::middleware(['auth.cookie'])->group(function () {
 | Rota Painel Administrativo Carros ( Cadastro, Edição e Finalizar )
 |--------------------------------------------------------------------------
 */
-        Route::resource('/cars', CarsController::class);
+        Route::resource('/cars', CarsController::class)->middleware('role:admin,operador,financeiro');
 
 
         /*
@@ -77,74 +85,78 @@ Route::middleware(['auth.cookie'])->group(function () {
 | Rota Painel Administrativo Visualizar o carro com Modal
 |--------------------------------------------------------------------------
 */
-        Route::get('/cars/showmodal/{car}', [CarsController::class, 'showModal'])->name('cars.modal');
+        Route::get('/cars/showmodal/{car}', [CarsController::class, 'showModal'])->middleware('role:admin,operador,financeiro')->name('cars.modal');
 
         /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Impressão comprovante Carro estacionado
 |--------------------------------------------------------------------------
 */
-        Route::post('/pembayaran/print', [PembayaranController::class, 'print'])->name('pembayaran.print');
-        Route::post('/pembayaran/printTicket', [PembayaranController::class, 'printTicket'])->name('pembayaran.printTicket');
+        Route::post('/pembayaran/print', [PembayaranController::class, 'print'])->middleware('role:admin,operador')->name('pembayaran.print');
+        Route::post('/pembayaran/printTicket', [PembayaranController::class, 'printTicket'])->middleware('role:admin,operador')->name('pembayaran.printTicket');
 
         /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Informações Principais do Estacionamento
 |-------------------------------------------------------------------------
 */
-        Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+        Route::get('/settings', [SettingsController::class, 'index'])->middleware('role:admin')->name('settings');
 
         /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Edição de Informações do Estacionamento
 |--------------------------------------------------------------------------
 */
-        Route::post('/settings/info', [SettingsController::class, 'editSettings'])->name('editSettings');
+        Route::post('/settings/info', [SettingsController::class, 'editSettings'])->middleware('role:admin')->name('editSettings');
 
-        Route::get('/settings/payments', [SettingsController::class, 'paymentSettings'])->name('paymentSettings');
-        Route::post('/settings/payments', [SettingsController::class, 'editPaymentSettings'])->name('editPaymentSettings');
+        Route::get('/settings/payments', [SettingsController::class, 'paymentSettings'])->middleware('role:admin')->name('paymentSettings');
+        Route::post('/settings/payments', [SettingsController::class, 'editPaymentSettings'])->middleware('role:admin')->name('editPaymentSettings');
 
         /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Preço para os Carros
 |--------------------------------------------------------------------------
 */
-        Route::get('/settings/price-car', [SettingsController::class, 'priceCar'])->name('priceCar');
+        Route::get('/settings/price-car', [SettingsController::class, 'priceCar'])->middleware('role:admin')->name('priceCar');
 
         /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Edição de Preço para Carros
 |--------------------------------------------------------------------------
 */
-        Route::post('/settings/price-car/edit', [SettingsController::class, 'editPriceCar'])->name('editPriceCar');
+        Route::post('/settings/price-car/edit', [SettingsController::class, 'editPriceCar'])->middleware('role:admin')->name('editPriceCar');
 
         /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Preço para Motos
 |--------------------------------------------------------------------------
 */
-        Route::get('/settings/price-motorcycle', [SettingsController::class, 'priceMotorcycle'])->name('priceMotorcycle');
+        Route::get('/settings/price-motorcycle', [SettingsController::class, 'priceMotorcycle'])->middleware('role:admin')->name('priceMotorcycle');
 
         /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Edição de Preço para Motos
 |--------------------------------------------------------------------------
 */
-        Route::post('/settings/price-motorcycle/edit', [SettingsController::class, 'editPriceMotorcycle'])->name('editPriceMotorcycle');
+        Route::post('/settings/price-motorcycle/edit', [SettingsController::class, 'editPriceMotorcycle'])->middleware('role:admin')->name('editPriceMotorcycle');
 
         /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Preço para Caminhonetes
 |--------------------------------------------------------------------------
 */
-        Route::get('/settings/price-truck', [SettingsController::class, 'priceTruck'])->name('priceTruck');
+        Route::get('/settings/price-truck', [SettingsController::class, 'priceTruck'])->middleware('role:admin')->name('priceTruck');
 
         /*
 |--------------------------------------------------------------------------
 | Rota Painel Administrativo Edição de Preço para Caminhonetes
 |--------------------------------------------------------------------------
 */
-        Route::post('/settings/price-truck/edit', [SettingsController::class, 'editPriceTruck'])->name('editPriceTruck');
+        Route::post('/settings/price-truck/edit', [SettingsController::class, 'editPriceTruck'])->middleware('role:admin')->name('editPriceTruck');
+        Route::get('/settings/dynamic-pricing', [DynamicPricingRuleController::class, 'index'])->middleware('role:admin')->name('dynamic-pricing.index');
+        Route::post('/settings/dynamic-pricing', [DynamicPricingRuleController::class, 'store'])->middleware('role:admin')->name('dynamic-pricing.store');
+        Route::put('/settings/dynamic-pricing/{dynamicPricingRule}', [DynamicPricingRuleController::class, 'update'])->middleware('role:admin')->name('dynamic-pricing.update');
+        Route::delete('/settings/dynamic-pricing/{dynamicPricingRule}', [DynamicPricingRuleController::class, 'destroy'])->middleware('role:admin')->name('dynamic-pricing.destroy');
 
         /*
 |--------------------------------------------------------------------------
@@ -152,7 +164,7 @@ Route::middleware(['auth.cookie'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-        Route::match(['get', 'post'], '/cars/search', [CarsController::class, 'search'])->name('cars.search');
+        Route::match(['get', 'post'], '/cars/search', [CarsController::class, 'search'])->middleware('role:admin,operador,financeiro')->name('cars.search');
 
         /*
 |--------------------------------------------------------------------------
@@ -160,7 +172,7 @@ Route::middleware(['auth.cookie'])->group(function () {
 |--------------------------------------------------------------------------
 */
         // Rota para mostrar os relatórios disponíveis
-        Route::get('/relatorios', [PDFController::class, 'showReports'])->name('reports.index');
+        Route::get('/relatorios', [PDFController::class, 'showReports'])->middleware('role:admin,financeiro')->name('reports.index');
 
         // Rota para gerar o relatório de veículos (Carros) em PDF
         Route::get('/car-mounth-pdf', [PDFController::class, 'generatePDFCars'])->name('generatePDFCars');
@@ -209,11 +221,84 @@ Route::middleware(['auth.cookie'])->group(function () {
         Route::get('/relatorios/mensalistas-inativos', [PDFController::class, 'generatePDFInactiveSubscribers'])->name('generatePDFInactiveSubscribers');
         Route::get('/relatorios/mensalistas-inativos-excel', [PDFController::class, 'generateExcelInactiveSubscribers'])->name('generateExcelInactiveSubscribers');
         
-        Route::resource('monthly-subscribers', MonthlySubscriberController::class);
+        Route::resource('monthly-subscribers', MonthlySubscriberController::class)->middleware('role:admin,financeiro,operador');
         Route::get('get-vehicle-price/{type}', [MonthlySubscriberController::class, 'getVehiclePrice'])
+            ->middleware('role:admin,financeiro,operador')
             ->name('get-vehicle-price');
 
-        Route::resource('accounting', AccountingController::class)->except(['show']);
+        Route::resource('accounting', AccountingController::class)->except(['show'])->middleware('role:admin,financeiro');
+        Route::get('/auditoria', [ActivityLogController::class, 'index'])->middleware('role:admin,financeiro')->name('audit.index');
+        Route::get('/auditoria/exportar/csv', [ActivityLogController::class, 'exportCsv'])->middleware('role:admin,financeiro')->name('audit.export.csv');
+        Route::get('/auditoria/exportar/pdf', [ActivityLogController::class, 'exportPdf'])->middleware('role:admin,financeiro')->name('audit.export.pdf');
+
+        Route::get('/operacao/mapa', [ParkingOperationsController::class, 'index'])
+            ->middleware('role:admin,operador')
+            ->name('operations.map');
+        Route::post('/operacao/setores', [ParkingOperationsController::class, 'storeSector'])
+            ->middleware('role:admin,operador')
+            ->name('operations.sectors.store');
+        Route::post('/operacao/vagas', [ParkingOperationsController::class, 'storeSpot'])
+            ->middleware('role:admin,operador')
+            ->name('operations.spots.store');
+        Route::patch('/operacao/vagas/{spot}/status', [ParkingOperationsController::class, 'updateSpotStatus'])
+            ->middleware('role:admin,operador')
+            ->name('operations.spots.status');
+
+        Route::get('/reservas', [ParkingReservationController::class, 'index'])
+            ->middleware('role:admin,operador')
+            ->name('reservations.index');
+        Route::post('/reservas', [ParkingReservationController::class, 'store'])
+            ->middleware('role:admin,operador')
+            ->name('reservations.store');
+        Route::post('/reservas/{reservation}/check-in', [ParkingReservationController::class, 'checkIn'])
+            ->middleware('role:admin,operador')
+            ->name('reservations.checkin');
+        Route::post('/reservas/{reservation}/cancelar', [ParkingReservationController::class, 'cancel'])
+            ->middleware('role:admin,operador')
+            ->name('reservations.cancel');
+
+        Route::get('/caixa-turno', [CashShiftController::class, 'index'])
+            ->middleware('role:admin,operador')
+            ->name('cash-shifts.index');
+        Route::post('/caixa-turno/abrir', [CashShiftController::class, 'open'])
+            ->middleware('role:admin,operador')
+            ->name('cash-shifts.open');
+        Route::post('/caixa-turno/{cashShift}/movimento', [CashShiftController::class, 'addMovement'])
+            ->middleware('role:admin,operador')
+            ->name('cash-shifts.movement');
+        Route::post('/caixa-turno/{cashShift}/fechar', [CashShiftController::class, 'close'])
+            ->middleware('role:admin,operador')
+            ->name('cash-shifts.close');
+
+        Route::get('/operacao/financeiro', [OperationsFinanceController::class, 'index'])
+            ->middleware('role:admin,financeiro')
+            ->name('operations.finance');
+        Route::post('/operacao/financeiro/recorrencia', [OperationsFinanceController::class, 'runRecurringBilling'])
+            ->middleware('role:admin,financeiro')
+            ->name('operations.finance.recurring');
+        Route::post('/operacao/financeiro/inadimplencia', [OperationsFinanceController::class, 'runDelinquency'])
+            ->middleware('role:admin,financeiro')
+            ->name('operations.finance.delinquency');
+        Route::post('/operacao/financeiro/fiscal', [OperationsFinanceController::class, 'issueFiscal'])
+            ->middleware('role:admin,financeiro')
+            ->name('operations.finance.fiscal');
+
+        Route::get('/integracoes', [IntegrationController::class, 'index'])
+            ->middleware('role:admin')
+            ->name('integrations.index');
+        Route::post('/integracoes', [IntegrationController::class, 'store'])
+            ->middleware('role:admin')
+            ->name('integrations.store');
+        Route::put('/integracoes/{integration}', [IntegrationController::class, 'update'])
+            ->middleware('role:admin')
+            ->name('integrations.update');
+
+        Route::get('/notificacoes', [NotificationCenterController::class, 'index'])
+            ->middleware('role:admin,financeiro')
+            ->name('notifications.index');
+        Route::post('/notificacoes/dispatch', [NotificationCenterController::class, 'processQueue'])
+            ->middleware('role:admin,financeiro')
+            ->name('notifications.dispatch');
     });
 });
 

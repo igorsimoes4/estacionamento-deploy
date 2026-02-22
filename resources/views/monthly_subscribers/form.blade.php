@@ -148,6 +148,33 @@
         </div>
 
         <div class="col-md-4 mb-3">
+            <input type="hidden" name="auto_renew_enabled" value="0">
+            <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" value="1" id="auto_renew_enabled"
+                    name="auto_renew_enabled"
+                    {{ old('auto_renew_enabled', $monthlySubscriber->auto_renew_enabled ?? true) ? 'checked' : '' }}>
+                <label class="form-check-label" for="auto_renew_enabled">
+                    Renovação automática
+                </label>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label for="recurring_payment_method" class="form-label">Método recorrente</label>
+            <select class="form-control @error('recurring_payment_method') is-invalid @enderror"
+                id="recurring_payment_method" name="recurring_payment_method">
+                <option value="">Padrão (boleto)</option>
+                <option value="boleto" {{ old('recurring_payment_method', $monthlySubscriber->recurring_payment_method ?? '') === 'boleto' ? 'selected' : '' }}>Boleto</option>
+                <option value="pix" {{ old('recurring_payment_method', $monthlySubscriber->recurring_payment_method ?? '') === 'pix' ? 'selected' : '' }}>Pix</option>
+                <option value="cartao_credito" {{ old('recurring_payment_method', $monthlySubscriber->recurring_payment_method ?? '') === 'cartao_credito' ? 'selected' : '' }}>Cartão crédito</option>
+                <option value="cartao_debito" {{ old('recurring_payment_method', $monthlySubscriber->recurring_payment_method ?? '') === 'cartao_debito' ? 'selected' : '' }}>Cartão débito</option>
+            </select>
+            @error('recurring_payment_method')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="col-md-4 mb-3">
             <label for="access_password" class="form-label">
                 Senha de Acesso {{ $isEdit ? '' : '*' }}
             </label>

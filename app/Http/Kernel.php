@@ -69,5 +69,7 @@ class Kernel extends HttpKernel
         'jwt.refresh' => \Tymon\JWTAuth\Http\Middleware\RefreshToken::class,
         'auth.cookie' => \App\Http\Middleware\AuthenticateWithCookie::class,
         'monthly.auth' => \App\Http\Middleware\EnsureMonthlySubscriberAuthenticated::class,
+        'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+        'integration.token' => \App\Http\Middleware\EnsureIntegrationToken::class,
     ];
 }

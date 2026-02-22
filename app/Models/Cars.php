@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -26,7 +27,6 @@ class Cars extends Model
         'cartao_credito',
         'cartao_debito',
         'transferencia',
-        'boleto',
         'outro',
     ];
 
@@ -47,6 +47,11 @@ class Cars extends Model
         'payment_url',
         'payment_reference',
         'paid_at',
+        'parking_sector_id',
+        'parking_spot_id',
+        'parking_reservation_id',
+        'entry_source',
+        'anpr_confidence',
     ];
 
     protected $casts = [
@@ -55,6 +60,10 @@ class Cars extends Model
         'paid_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'parking_sector_id' => 'integer',
+        'parking_spot_id' => 'integer',
+        'parking_reservation_id' => 'integer',
+        'anpr_confidence' => 'decimal:2',
     ];
 
     public function scopeParked(Builder $query): Builder
@@ -69,6 +78,21 @@ class Cars extends Model
         return $query->where('status', 'finalizado');
     }
 
+    public function sector(): BelongsTo
+    {
+        return $this->belongsTo(ParkingSector::class, 'parking_sector_id');
+    }
+
+    public function spot(): BelongsTo
+    {
+        return $this->belongsTo(ParkingSpot::class, 'parking_spot_id');
+    }
+
+    public function reservation(): BelongsTo
+    {
+        return $this->belongsTo(ParkingReservation::class, 'parking_reservation_id');
+    }
+
     public static function paymentMethodLabel(?string $method): string
     {
         return match ($method) {
@@ -79,7 +103,6 @@ class Cars extends Model
             'cartao_credito' => 'Cartao credito',
             'cartao_debito' => 'Cartao debito',
             'transferencia' => 'Transferencia',
-            'boleto' => 'Boleto',
             'outro' => 'Outro',
             default => 'Nao informado',
         };
