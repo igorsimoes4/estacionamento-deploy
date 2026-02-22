@@ -13,12 +13,14 @@ use Nette;
 use Nette\Schema\Context;
 use Nette\Schema\Helpers;
 use Nette\Schema\Schema;
+use function array_merge, array_unique, implode, is_array;
 
 
 final class AnyOf implements Schema
 {
 	use Base;
 
+	/** @var mixed[] */
 	private array $set;
 
 

@@ -11,6 +11,7 @@ namespace Nette\Schema;
 
 use Nette;
 use Nette\Utils\Reflection;
+use function count, explode, get_debug_type, implode, in_array, is_array, is_float, is_int, is_object, is_scalar, is_string, method_exists, preg_match, preg_quote, preg_replace, preg_replace_callback, settype, str_replace, strlen, trim, var_export;
 
 
 /**
@@ -64,7 +65,7 @@ final class Helpers
 			&& ($type = preg_replace('#\s.*#', '', (string) self::parseAnnotation($prop, 'var')))
 		) {
 			$class = Reflection::getPropertyDeclaringClass($prop);
-			return preg_replace_callback('#[\w\\\\]+#', fn($m) => Reflection::expandClassName($m[0], $class), $type);
+			return preg_replace_callback('#[\w\\\]+#', fn($m) => Reflection::expandClassName($m[0], $class), $type);
 		}
 
 		return null;
@@ -120,12 +121,13 @@ final class Helpers
 	}
 
 
+	/** @param  array{?float, ?float}  $range */
 	public static function validateRange(mixed $value, array $range, Context $context, string $types = ''): void
 	{
 		if (is_array($value) || is_string($value)) {
 			[$length, $label] = is_array($value)
 				? [count($value), 'items']
-				: (in_array('unicode', explode('|', $types), true)
+				: (in_array('unicode', explode('|', $types), strict: true)
 					? [Nette\Utils\Strings::length($value), 'characters']
 					: [strlen($value), 'bytes']);
 
@@ -146,6 +148,7 @@ final class Helpers
 	}
 
 
+	/** @param  array{?float, ?float}  $range */
 	public static function isInRange(mixed $value, array $range): bool
 	{
 		return ($range[0] === null || $value >= $range[0])
@@ -165,9 +168,10 @@ final class Helpers
 	}
 
 
+	/** @return \Closure(mixed): mixed */
 	public static function getCastStrategy(string $type): \Closure
 	{
-		if (Nette\Utils\Reflection::isBuiltinType($type)) {
+		if (Nette\Utils\Validators::isBuiltinType($type)) {
 			return static function ($value) use ($type) {
 				settype($value, $type);
 				return $value;
