@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal do Mensalista | Painel</title>
+    @laravelPWA
     <link rel="icon" type="image/png" href="{{ asset('img/LogoEstacionamento.png') }}">
     <link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.css') }}">
     <link rel="stylesheet" href="{{ asset('fontawesome-free/css/all.min.css') }}">

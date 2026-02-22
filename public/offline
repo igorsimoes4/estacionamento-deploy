@@ -36,8 +36,8 @@
 
 <body>
     <div class="container">
-        <h1>Você está offline</h1>
-        <p>Por favor, verifique sua conexão com a internet e tente novamente.</p>
+        <h1>Voce esta offline</h1>
+        <p>Por favor, verifique sua conexao com a internet e tente novamente.</p>
     </div>
 </body>
 

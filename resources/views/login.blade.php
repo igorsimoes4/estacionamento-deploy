@@ -1,9 +1,5 @@
 @extends('adminlte::page')
 
-@section('head')
-    @laravelPWA
-@endsection
-
 @section('adminlte_css')
     <link rel="icon" type="image/png" href="{{ asset('img/LogoEstacionamento.png') }}">
     <link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.css') }}">
@@ -377,7 +373,6 @@
 @endsection
 
 @section('adminlte_js')
-    <script src="{{ asset('serviceworker.js') }}"></script>
     <script src="{{ asset('js/jquery.min.js') }}"></script>
     <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
     <script src="{{ asset('overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
