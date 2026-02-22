@@ -168,8 +168,8 @@
             $isCard = in_array($checkoutMethod, ['cartao_credito', 'cartao_debito'], true);
         @endphp
 
-        <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(8, 15, 30, .58);">
-            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal fade show d-block checkout-modal-overlay" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable checkout-modal-dialog" role="document">
                 <div class="modal-content theme-fade-in">
                     <div class="modal-header">
                         <h5 class="modal-title mb-0">Checkout de Pagamento</h5>
@@ -309,6 +309,16 @@
                                     <label class="small text-uppercase font-weight-bold">Vencimento</label>
                                     <input type="text" class="form-control" value="{{ $checkoutBoletoDueDate }}" readonly>
                                 </div>
+                                @if ($checkoutBoletoBarcodeSvg !== '')
+                                    <div class="col-md-12 mb-2">
+                                        <label class="small text-uppercase font-weight-bold">Visual do codigo de barras</label>
+                                        <div class="border rounded bg-white p-2 text-center">
+                                            <div class="d-inline-block checkout-boleto-barcode" style="max-width: 100%;">
+                                                {!! $checkoutBoletoBarcodeSvg !!}
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
                                 <div class="col-md-12">
                                     @if ($checkoutBoletoUrl !== '')
                                         <a href="{{ $checkoutBoletoUrl }}" target="_blank" class="btn btn-outline-primary btn-sm">
@@ -339,6 +349,48 @@
 </div>
 
 @once
+    <style>
+        .checkout-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1050;
+            overflow-y: auto;
+            padding: .75rem .4rem;
+            background: rgba(8, 15, 30, .58);
+        }
+
+        .checkout-modal-dialog {
+            margin: 0 auto;
+            min-height: calc(100% - 1.5rem);
+        }
+
+        .checkout-modal-dialog .modal-content {
+            max-height: calc(100vh - 1.5rem);
+        }
+
+        .checkout-modal-dialog .modal-body {
+            overflow-y: auto;
+        }
+
+        .checkout-boleto-barcode svg {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            height: 72px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 768px) {
+            .checkout-modal-overlay {
+                padding: 1rem;
+            }
+
+            .checkout-modal-dialog .modal-content {
+                max-height: calc(100vh - 2rem);
+            }
+        }
+    </style>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         (function() {

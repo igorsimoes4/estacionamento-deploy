@@ -8,6 +8,7 @@ use App\Models\PriceMotorcycle;
 use App\Models\PriceTruck;
 use App\Models\Settings;
 use App\Services\Payments\CheckoutGatewayService;
+use App\Support\ItfBarcode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Component;
@@ -49,6 +50,7 @@ class VehiclesTable extends Component
     public string $checkoutBoletoBarcode = '';
     public string $checkoutBoletoDigitableLine = '';
     public string $checkoutBoletoDueDate = '';
+    public string $checkoutBoletoBarcodeSvg = '';
     public string $checkoutExternalPaymentId = '';
 
     protected $queryString = [
@@ -218,6 +220,13 @@ class VehiclesTable extends Component
             $this->checkoutBoletoBarcode = (string) ($result['boleto_barcode'] ?? '');
             $this->checkoutBoletoDigitableLine = (string) ($result['boleto_digitable_line'] ?? '');
             $this->checkoutBoletoDueDate = (string) ($result['boleto_due_date'] ?? '');
+            if ($this->checkoutBoletoBarcode === '' && $this->checkoutBoletoDigitableLine !== '') {
+                $this->checkoutBoletoBarcode = preg_replace('/\D+/', '', $this->checkoutBoletoDigitableLine) ?? '';
+            }
+            $this->checkoutBoletoBarcodeSvg = $this->buildBoletoBarcodeSvg(
+                $this->checkoutBoletoBarcode,
+                $this->checkoutBoletoDigitableLine
+            );
             $this->checkoutExternalPaymentId = (string) ($result['charge_id'] ?? '');
             $this->checkoutReference = (string) ($result['reference'] ?? $this->checkoutReference);
             $this->checkoutGatewayNotice = (string) ($result['warning'] ?? '');
@@ -227,6 +236,7 @@ class VehiclesTable extends Component
             $this->checkoutBoletoBarcode = '';
             $this->checkoutBoletoDigitableLine = '';
             $this->checkoutBoletoDueDate = '';
+            $this->checkoutBoletoBarcodeSvg = '';
             $this->checkoutExternalPaymentId = '';
             $this->pixWarning = $e->getMessage();
 
@@ -392,7 +402,18 @@ class VehiclesTable extends Component
         $this->checkoutBoletoBarcode = '';
         $this->checkoutBoletoDigitableLine = '';
         $this->checkoutBoletoDueDate = '';
+        $this->checkoutBoletoBarcodeSvg = '';
         $this->checkoutExternalPaymentId = '';
+    }
+
+    private function buildBoletoBarcodeSvg(string $barcode, string $digitableLine): string
+    {
+        $digits = preg_replace('/\D+/', '', $barcode !== '' ? $barcode : $digitableLine) ?? '';
+        if ($digits === '') {
+            return '';
+        }
+
+        return ItfBarcode::renderSvg($digits, 72, 2, 5, 10);
     }
 
     private function checkoutPayloadData(Settings $settings): array
