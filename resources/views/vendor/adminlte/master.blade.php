@@ -8,6 +8,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     {{-- Custom Meta Tags --}}
     @yield('meta_tags')
@@ -100,6 +102,12 @@
 </head>
 
 <body class="@yield('classes_body')" @yield('body_data')>
+    <div id="theme-page-loader" class="theme-page-loader" aria-hidden="true">
+        <div class="theme-page-loader__content">
+            <div class="theme-page-loader__spinner"></div>
+            <p class="theme-page-loader__text">Carregando pagina...</p>
+        </div>
+    </div>
 
     {{-- Body Content --}}
     @yield('body')
