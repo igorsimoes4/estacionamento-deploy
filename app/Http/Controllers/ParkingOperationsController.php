@@ -12,22 +12,102 @@ use Illuminate\View\View;
 
 class ParkingOperationsController extends Controller
 {
-    public function index(DynamicPricingService $pricingService): View
+    public function index(Request $request, DynamicPricingService $pricingService): View
     {
+        $filters = [
+            'sector_id' => (int) $request->query('sector_id', 0),
+            'status' => trim((string) $request->query('status', '')),
+            'vehicle_type' => trim((string) $request->query('vehicle_type', '')),
+            'q' => strtoupper(trim((string) $request->query('q', ''))),
+            'with_spots' => $request->boolean('with_spots', false),
+        ];
+
+        if (!in_array($filters['status'], ['', 'available', 'reserved', 'occupied', 'blocked', 'maintenance'], true)) {
+            $filters['status'] = '';
+        }
+
+        if (!in_array($filters['vehicle_type'], ['', 'carro', 'moto', 'caminhonete', 'geral'], true)) {
+            $filters['vehicle_type'] = '';
+        }
+
+        $spotQuery = function ($query) use ($filters): void {
+            $query->orderBy('code')->with(['car:id,placa', 'reservation:id,reference']);
+
+            if ($filters['status'] !== '') {
+                $query->where('status', $filters['status']);
+            }
+
+            if ($filters['vehicle_type'] !== '') {
+                $query->where('vehicle_type', $filters['vehicle_type']);
+            }
+
+            if ($filters['q'] !== '') {
+                $query->where('code', 'like', '%' . $filters['q'] . '%');
+            }
+        };
+
         $sectors = ParkingSector::query()
-            ->with(['spots' => fn ($query) => $query->orderBy('code')])
+            ->when($filters['sector_id'] > 0, fn ($query) => $query->whereKey($filters['sector_id']))
+            ->with(['spots' => $spotQuery])
             ->orderBy('name')
             ->get();
+
+        if ($filters['with_spots']) {
+            $sectors = $sectors->filter(fn ($sector) => $sector->spots->isNotEmpty())->values();
+        }
+
+        $spotStatusTotals = [
+            ParkingSpot::STATUS_AVAILABLE => (int) ParkingSpot::query()->where('status', ParkingSpot::STATUS_AVAILABLE)->count(),
+            ParkingSpot::STATUS_RESERVED => (int) ParkingSpot::query()->where('status', ParkingSpot::STATUS_RESERVED)->count(),
+            ParkingSpot::STATUS_OCCUPIED => (int) ParkingSpot::query()->where('status', ParkingSpot::STATUS_OCCUPIED)->count(),
+            ParkingSpot::STATUS_BLOCKED => (int) ParkingSpot::query()->where('status', ParkingSpot::STATUS_BLOCKED)->count(),
+            ParkingSpot::STATUS_MAINTENANCE => (int) ParkingSpot::query()->where('status', ParkingSpot::STATUS_MAINTENANCE)->count(),
+        ];
+
+        $totalSpots = array_sum($spotStatusTotals);
+
+        $visibleSpots = $sectors->sum(fn ($sector) => $sector->spots->count());
+        $visibleOccupied = $sectors->sum(fn ($sector) => $sector->spots->where('status', ParkingSpot::STATUS_OCCUPIED)->count());
 
         $summary = [
             'active_cars' => Cars::parked()->count(),
             'finished_today' => Cars::finished()->whereDate('saida', today())->count(),
             'occupancy_percent' => $pricingService->currentOccupancyPercent(),
-            'occupied_spots' => ParkingSpot::query()->where('status', ParkingSpot::STATUS_OCCUPIED)->count(),
-            'available_spots' => ParkingSpot::query()->where('status', ParkingSpot::STATUS_AVAILABLE)->count(),
+            'occupied_spots' => $spotStatusTotals[ParkingSpot::STATUS_OCCUPIED],
+            'available_spots' => $spotStatusTotals[ParkingSpot::STATUS_AVAILABLE],
+            'reserved_spots' => $spotStatusTotals[ParkingSpot::STATUS_RESERVED],
+            'blocked_spots' => $spotStatusTotals[ParkingSpot::STATUS_BLOCKED],
+            'maintenance_spots' => $spotStatusTotals[ParkingSpot::STATUS_MAINTENANCE],
+            'total_spots' => $totalSpots,
+            'visible_spots' => $visibleSpots,
+            'visible_occupancy_percent' => $visibleSpots > 0
+                ? (int) round(($visibleOccupied / $visibleSpots) * 100)
+                : 0,
         ];
 
-        return view('operations.map', compact('sectors', 'summary'));
+        $statusOptions = [
+            '' => 'Todos os status',
+            ParkingSpot::STATUS_AVAILABLE => 'Livre',
+            ParkingSpot::STATUS_RESERVED => 'Reservada',
+            ParkingSpot::STATUS_OCCUPIED => 'Ocupada',
+            ParkingSpot::STATUS_BLOCKED => 'Bloqueada',
+            ParkingSpot::STATUS_MAINTENANCE => 'Manutencao',
+        ];
+
+        $vehicleTypeOptions = [
+            '' => 'Todos os tipos',
+            'carro' => 'Carro',
+            'moto' => 'Moto',
+            'caminhonete' => 'Caminhonete',
+            'geral' => 'Geral',
+        ];
+
+        $allSectors = ParkingSector::query()->orderBy('name')->get(['id', 'name', 'code']);
+
+        return view(
+            'operations.map',
+            compact('sectors', 'summary', 'filters', 'statusOptions', 'vehicleTypeOptions', 'allSectors')
+        );
     }
 
     public function storeSector(Request $request): RedirectResponse
@@ -52,7 +132,7 @@ class ParkingOperationsController extends Controller
             'notes' => $payload['notes'] ?? null,
         ]);
 
-        return redirect()->route('operations.map')->with('create', 'Setor criado com sucesso.');
+        return redirect()->back()->with('create', 'Setor criado com sucesso.');
     }
 
     public function storeSpot(Request $request): RedirectResponse
@@ -69,7 +149,7 @@ class ParkingOperationsController extends Controller
             ->exists();
 
         if ($exists) {
-            return redirect()->route('operations.map')->with('error', 'Ja existe uma vaga com este codigo no setor.');
+            return redirect()->back()->with('error', 'Ja existe uma vaga com este codigo no setor.');
         }
 
         ParkingSpot::query()->create([
@@ -79,7 +159,7 @@ class ParkingOperationsController extends Controller
             'status' => ParkingSpot::STATUS_AVAILABLE,
         ]);
 
-        return redirect()->route('operations.map')->with('create', 'Vaga criada com sucesso.');
+        return redirect()->back()->with('create', 'Vaga criada com sucesso.');
     }
 
     public function updateSpotStatus(Request $request, ParkingSpot $spot): RedirectResponse
@@ -101,6 +181,6 @@ class ParkingOperationsController extends Controller
 
         $spot->save();
 
-        return redirect()->route('operations.map')->with('create', 'Status da vaga atualizado.');
+        return redirect()->back()->with('create', 'Status da vaga atualizado.');
     }
 }

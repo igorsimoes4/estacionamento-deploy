@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cars;
 use App\Models\ParkingReservation;
+use App\Models\ParkingSector;
 use App\Models\PaymentTransaction;
 use App\Models\PriceCar;
 use App\Models\PriceMotorcycle;
@@ -18,19 +19,125 @@ class ParkingReservationController extends Controller
 {
     public function index(Request $request): View
     {
-        $status = (string) $request->query('status', 'active');
+        $filters = [
+            'status' => trim((string) $request->query('status', 'active')),
+            'q' => trim((string) $request->query('q', '')),
+            'vehicle_type' => trim((string) $request->query('vehicle_type', '')),
+            'payment_status' => trim((string) $request->query('payment_status', '')),
+            'sector_id' => (int) $request->query('sector_id', 0),
+            'date_from' => trim((string) $request->query('date_from', '')),
+            'date_to' => trim((string) $request->query('date_to', '')),
+            'per_page' => (int) $request->query('per_page', 20),
+        ];
 
-        $query = ParkingReservation::query()->with(['sector', 'spot'])->orderByDesc('starts_at');
+        $allowedStatus = [
+            'all',
+            'active',
+            ParkingReservation::STATUS_PENDING,
+            ParkingReservation::STATUS_CONFIRMED,
+            ParkingReservation::STATUS_CHECKED_IN,
+            ParkingReservation::STATUS_COMPLETED,
+            ParkingReservation::STATUS_CANCELLED,
+            ParkingReservation::STATUS_NO_SHOW,
+            'upcoming',
+        ];
 
-        if ($status === 'active') {
-            $query->active();
-        } elseif ($status !== 'all') {
-            $query->where('status', $status);
+        if (!in_array($filters['status'], $allowedStatus, true)) {
+            $filters['status'] = 'active';
         }
 
-        $reservations = $query->paginate(20)->withQueryString();
+        if (!in_array($filters['vehicle_type'], ['', 'carro', 'moto', 'caminhonete'], true)) {
+            $filters['vehicle_type'] = '';
+        }
 
-        return view('reservations.index', compact('reservations', 'status'));
+        if (!in_array($filters['payment_status'], ['', 'pending', 'paid', 'failed', 'cancelled', 'refunded'], true)) {
+            $filters['payment_status'] = '';
+        }
+
+        if (!in_array($filters['per_page'], [10, 20, 30, 50], true)) {
+            $filters['per_page'] = 20;
+        }
+
+        $query = ParkingReservation::query()
+            ->with(['sector:id,name,code', 'spot:id,code']);
+
+        if ($filters['status'] === 'active') {
+            $query->active();
+        } elseif ($filters['status'] === 'upcoming') {
+            $query->upcoming();
+        } elseif ($filters['status'] !== 'all') {
+            $query->where('status', $filters['status']);
+        }
+
+        if ($filters['q'] !== '') {
+            $term = '%' . $filters['q'] . '%';
+            $query->where(function ($inner) use ($term): void {
+                $inner->where('reference', 'like', $term)
+                    ->orWhere('customer_name', 'like', $term)
+                    ->orWhere('customer_email', 'like', $term)
+                    ->orWhere('customer_phone', 'like', $term)
+                    ->orWhere('vehicle_plate', 'like', $term);
+            });
+        }
+
+        if ($filters['vehicle_type'] !== '') {
+            $query->where('vehicle_type', $filters['vehicle_type']);
+        }
+
+        if ($filters['payment_status'] !== '') {
+            $query->where('payment_status', $filters['payment_status']);
+        }
+
+        if ($filters['sector_id'] > 0) {
+            $query->where('parking_sector_id', $filters['sector_id']);
+        }
+
+        if ($filters['date_from'] !== '') {
+            $query->whereDate('starts_at', '>=', $filters['date_from']);
+        }
+
+        if ($filters['date_to'] !== '') {
+            $query->whereDate('starts_at', '<=', $filters['date_to']);
+        }
+
+        $filteredTotal = (clone $query)->count();
+
+        $reservations = $query
+            ->orderBy('starts_at')
+            ->paginate($filters['per_page'])
+            ->withQueryString();
+
+        $stats = [
+            'total' => ParkingReservation::query()->count(),
+            'active' => ParkingReservation::query()->active()->count(),
+            'upcoming' => ParkingReservation::query()->upcoming()->count(),
+            'checked_in' => ParkingReservation::query()->where('status', ParkingReservation::STATUS_CHECKED_IN)->count(),
+            'cancelled' => ParkingReservation::query()->where('status', ParkingReservation::STATUS_CANCELLED)->count(),
+            'estimated_active_cents' => (int) ParkingReservation::query()
+                ->whereIn('status', [
+                    ParkingReservation::STATUS_PENDING,
+                    ParkingReservation::STATUS_CONFIRMED,
+                    ParkingReservation::STATUS_CHECKED_IN,
+                ])
+                ->sum('estimated_amount_cents'),
+            'filtered_total' => $filteredTotal,
+        ];
+
+        $statusOptions = [
+            'active' => 'Ativas',
+            'upcoming' => 'Proximas',
+            'all' => 'Todas',
+            ParkingReservation::STATUS_PENDING => 'Pendente',
+            ParkingReservation::STATUS_CONFIRMED => 'Confirmada',
+            ParkingReservation::STATUS_CHECKED_IN => 'Check-in',
+            ParkingReservation::STATUS_COMPLETED => 'Concluida',
+            ParkingReservation::STATUS_CANCELLED => 'Cancelada',
+            ParkingReservation::STATUS_NO_SHOW => 'No-show',
+        ];
+
+        $sectors = ParkingSector::query()->orderBy('name')->get(['id', 'name', 'code']);
+
+        return view('reservations.index', compact('reservations', 'filters', 'stats', 'statusOptions', 'sectors'));
     }
 
     public function store(Request $request, DynamicPricingService $dynamicPricingService, ParkingSpotAllocatorService $allocator): RedirectResponse
