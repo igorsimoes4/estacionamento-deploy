@@ -13,6 +13,9 @@ class AccountingController extends Controller
     {
         $period = (string) $request->query('period', now()->format('Y-m'));
         $type = (string) $request->query('type', 'all');
+        $paymentMethod = trim((string) $request->query('payment_method', ''));
+        $search = trim((string) $request->query('q', ''));
+        $perPage = (int) $request->query('per_page', 20);
 
         if (preg_match('/^\d{4}-\d{2}$/', $period) !== 1) {
             $period = now()->format('Y-m');
@@ -20,6 +23,14 @@ class AccountingController extends Controller
 
         if (!in_array($type, ['all', 'receita', 'despesa'], true)) {
             $type = 'all';
+        }
+
+        if (!in_array($paymentMethod, ['', 'dinheiro', 'pix', 'cartao_credito', 'cartao_debito', 'transferencia', 'boleto', 'outro'], true)) {
+            $paymentMethod = '';
+        }
+
+        if (!in_array($perPage, [10, 20, 30, 50], true)) {
+            $perPage = 20;
         }
 
         try {
@@ -35,12 +46,23 @@ class AccountingController extends Controller
 
         $end = $start->copy()->endOfMonth();
 
-        $entries = AccountingEntry::query()
+        $entriesBase = AccountingEntry::query()
             ->whereBetween('occurred_at', [$start->toDateString(), $end->toDateString()])
             ->when($type !== 'all', fn ($query) => $query->where('type', $type))
+            ->when($paymentMethod !== '', fn ($query) => $query->where('payment_method', $paymentMethod))
+            ->when($search !== '', function ($query) use ($search): void {
+                $term = '%' . $search . '%';
+                $query->where(function ($inner) use ($term): void {
+                    $inner->where('category', 'like', $term)
+                        ->orWhere('description', 'like', $term)
+                        ->orWhere('notes', 'like', $term);
+                });
+            });
+
+        $entries = (clone $entriesBase)
             ->orderByDesc('occurred_at')
             ->orderByDesc('id')
-            ->paginate(20)
+            ->paginate($perPage)
             ->appends($request->query());
 
         $operationalRevenue = (float) Cars::finished()
@@ -80,11 +102,84 @@ class AccountingController extends Controller
                 ];
             });
 
+        $manualByMethod = AccountingEntry::query()
+            ->whereBetween('occurred_at', [$start->toDateString(), $end->toDateString()])
+            ->when($type !== 'all', fn ($query) => $query->where('type', $type))
+            ->when($paymentMethod !== '', fn ($query) => $query->where('payment_method', $paymentMethod))
+            ->when($search !== '', function ($query) use ($search): void {
+                $term = '%' . $search . '%';
+                $query->where(function ($inner) use ($term): void {
+                    $inner->where('category', 'like', $term)
+                        ->orWhere('description', 'like', $term)
+                        ->orWhere('notes', 'like', $term);
+                });
+            })
+            ->selectRaw("COALESCE(NULLIF(payment_method, ''), 'nao_informado') as payment_method_key")
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw('SUM(amount) as amount')
+            ->groupBy('payment_method_key')
+            ->orderByDesc('amount')
+            ->get()
+            ->map(function ($row) {
+                return (object) [
+                    'method' => Cars::paymentMethodLabel($row->payment_method_key === 'nao_informado' ? null : $row->payment_method_key),
+                    'total' => (int) $row->total,
+                    'amount' => (float) $row->amount,
+                ];
+            });
+
+        $topCategories = (clone $entriesBase)
+            ->selectRaw("COALESCE(NULLIF(category, ''), 'Sem categoria') as category_name")
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw("SUM(CASE WHEN type = 'receita' THEN amount ELSE 0 END) as revenue_amount")
+            ->selectRaw("SUM(CASE WHEN type = 'despesa' THEN amount ELSE 0 END) as expense_amount")
+            ->groupBy('category_name')
+            ->orderByDesc('total')
+            ->limit(6)
+            ->get()
+            ->map(function ($row) {
+                return (object) [
+                    'category' => (string) $row->category_name,
+                    'total' => (int) $row->total,
+                    'revenue_amount' => (float) $row->revenue_amount,
+                    'expense_amount' => (float) $row->expense_amount,
+                    'balance_amount' => (float) $row->revenue_amount - (float) $row->expense_amount,
+                ];
+            });
+
+        $filteredRevenue = (float) (clone $entriesBase)->where('type', 'receita')->sum('amount');
+        $filteredExpense = (float) (clone $entriesBase)->where('type', 'despesa')->sum('amount');
+        $filteredBalance = $filteredRevenue - $filteredExpense;
+        $filteredCount = (int) (clone $entriesBase)->count();
+
+        $paymentMethodOptions = [
+            '' => 'Todos',
+            'dinheiro' => Cars::paymentMethodLabel('dinheiro'),
+            'pix' => Cars::paymentMethodLabel('pix'),
+            'cartao_credito' => Cars::paymentMethodLabel('cartao_credito'),
+            'cartao_debito' => Cars::paymentMethodLabel('cartao_debito'),
+            'transferencia' => Cars::paymentMethodLabel('transferencia'),
+            'boleto' => Cars::paymentMethodLabel('boleto'),
+            'outro' => Cars::paymentMethodLabel('outro'),
+        ];
+
+        $filters = [
+            'period' => $period,
+            'type' => $type,
+            'payment_method' => $paymentMethod,
+            'q' => $search,
+            'per_page' => $perPage,
+        ];
+
         return view('accounting.index', [
             'entries' => $entries,
             'period' => $period,
             'type' => $type,
             'operationalByMethod' => $operationalByMethod,
+            'manualByMethod' => $manualByMethod,
+            'topCategories' => $topCategories,
+            'paymentMethodOptions' => $paymentMethodOptions,
+            'filters' => $filters,
             'stats' => [
                 'operational_revenue' => $operationalRevenue,
                 'manual_revenue' => $manualRevenue,
@@ -92,6 +187,10 @@ class AccountingController extends Controller
                 'total_revenue' => $totalRevenue,
                 'net_result' => $netResult,
                 'all_time_balance' => $allTimeBalance,
+                'filtered_revenue' => $filteredRevenue,
+                'filtered_expense' => $filteredExpense,
+                'filtered_balance' => $filteredBalance,
+                'filtered_count' => $filteredCount,
             ],
         ]);
     }
