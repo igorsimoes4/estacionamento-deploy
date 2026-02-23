@@ -1,4 +1,4 @@
-<form action="{{ route('pembayaran.print') }}" method="POST">
+<form action="{{ route('pembayaran.printTicket') }}" method="POST">
     <input type="hidden" name="tipo_car" value="{{$car->tipo_car}}" class="form-control">
     <input type="hidden" name="preco" value="{{$car->price ?? $car->preco}}" class="form-control">
     <input type="hidden" name="placa" value="{{$car->placa}}" class="form-control">

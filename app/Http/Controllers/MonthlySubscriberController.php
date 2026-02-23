@@ -16,19 +16,64 @@ class MonthlySubscriberController extends Controller
 {
     public function index(Request $request)
     {
-        $status = $request->query('status', 'todos');
+        $status = trim((string) $request->query('status', 'todos'));
+        $search = trim((string) $request->query('q', ''));
+        $vehicleType = trim((string) $request->query('vehicle_type', ''));
+        $perPage = (int) $request->query('per_page', 15);
+        $perPage = in_array($perPage, [10, 15, 20, 50], true) ? $perPage : 15;
 
-        $query = MonthlySubscriber::query()->orderBy('name');
+        $query = MonthlySubscriber::query();
+
+        if ($search !== '') {
+            $term = '%' . $search . '%';
+            $query->where(function ($inner) use ($term): void {
+                $inner->where('name', 'like', $term)
+                    ->orWhere('email', 'like', $term)
+                    ->orWhere('cpf', 'like', $term)
+                    ->orWhere('vehicle_plate', 'like', $term);
+            });
+        }
+
+        if (in_array($vehicleType, ['carro', 'moto', 'caminhonete'], true)) {
+            $query->where('vehicle_type', $vehicleType);
+        }
 
         if ($status === 'ativos') {
             $query->active();
         } elseif ($status === 'vencendo') {
             $query->expiringSoon(7);
+        } elseif ($status === 'inadimplentes') {
+            $query->whereNotNull('delinquent_since');
+        } elseif ($status === 'inativos') {
+            $query->where('is_active', false);
+        } else {
+            $status = 'todos';
         }
 
-        $subscribers = $query->get();
+        $subscribers = $query
+            ->orderBy('end_date')
+            ->orderBy('name')
+            ->paginate($perPage)
+            ->withQueryString();
 
-        return view('monthly_subscribers.index', compact('subscribers', 'status'));
+        $stats = [
+            'total' => MonthlySubscriber::query()->count(),
+            'active' => MonthlySubscriber::query()->where('is_active', true)->count(),
+            'expiring' => MonthlySubscriber::query()->expiringSoon(7)->count(),
+            'overdue' => MonthlySubscriber::query()->whereNotNull('delinquent_since')->count(),
+            'mrr' => (float) MonthlySubscriber::query()
+                ->where('is_active', true)
+                ->sum('monthly_fee'),
+        ];
+
+        $filters = [
+            'status' => $status,
+            'q' => $search,
+            'vehicle_type' => $vehicleType,
+            'per_page' => $perPage,
+        ];
+
+        return view('monthly_subscribers.index', compact('subscribers', 'filters', 'stats'));
     }
 
     public function create()

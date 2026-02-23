@@ -106,6 +106,13 @@ class SettingsController extends Controller
             'getnet_seller_id',
             'getnet_api_base_url',
             'boleto_due_days',
+            'ticket_print_enabled',
+            'ticket_printer_driver',
+            'ticket_printer_target',
+            'ticket_printer_port',
+            'ticket_printer_timeout',
+            'ticket_print_copies',
+            'ticket_line_width',
         ]);
 
         $validator = Validator::make($data, [
@@ -130,6 +137,13 @@ class SettingsController extends Controller
             'getnet_seller_id' => ['nullable', 'string', 'max:255'],
             'getnet_api_base_url' => ['nullable', 'url', 'max:255'],
             'boleto_due_days' => ['nullable', 'integer', 'min:1', 'max:30'],
+            'ticket_print_enabled' => ['nullable', 'boolean'],
+            'ticket_printer_driver' => ['nullable', 'in:windows,cups,network,file'],
+            'ticket_printer_target' => ['nullable', 'string', 'max:255'],
+            'ticket_printer_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'ticket_printer_timeout' => ['nullable', 'integer', 'min:1', 'max:60'],
+            'ticket_print_copies' => ['nullable', 'integer', 'min:1', 'max:5'],
+            'ticket_line_width' => ['nullable', 'integer', 'min:16', 'max:64'],
         ]);
 
         if ($validator->fails()) {
@@ -158,6 +172,13 @@ class SettingsController extends Controller
         $estacionamento->getnet_seller_id = $data['getnet_seller_id'] ?? null;
         $estacionamento->getnet_api_base_url = $data['getnet_api_base_url'] ?? null;
         $estacionamento->boleto_due_days = isset($data['boleto_due_days']) ? (int) $data['boleto_due_days'] : 3;
+        $estacionamento->ticket_print_enabled = $req->boolean('ticket_print_enabled', false);
+        $estacionamento->ticket_printer_driver = $data['ticket_printer_driver'] ?? 'windows';
+        $estacionamento->ticket_printer_target = $data['ticket_printer_target'] ?? null;
+        $estacionamento->ticket_printer_port = isset($data['ticket_printer_port']) ? (int) $data['ticket_printer_port'] : null;
+        $estacionamento->ticket_printer_timeout = isset($data['ticket_printer_timeout']) ? (int) $data['ticket_printer_timeout'] : 10;
+        $estacionamento->ticket_print_copies = isset($data['ticket_print_copies']) ? (int) $data['ticket_print_copies'] : 1;
+        $estacionamento->ticket_line_width = isset($data['ticket_line_width']) ? (int) $data['ticket_line_width'] : 42;
         $estacionamento->save();
 
         return redirect()->route('paymentSettings')->with('create', 'Configuracoes de pagamento atualizadas com sucesso.');

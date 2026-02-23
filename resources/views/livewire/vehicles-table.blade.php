@@ -135,7 +135,7 @@
                                             Cobrar
                                         </button>
 
-                                        <form action="{{ route('pembayaran.print') }}" method="POST" target="_blank">
+                                        <form action="{{ route('pembayaran.printTicket') }}" method="POST">
                                             @csrf
                                             <input type="hidden" name="tipo_car" value="{{ $car->tipo_car }}">
                                             <input type="hidden" name="placa" value="{{ $car->placa }}">

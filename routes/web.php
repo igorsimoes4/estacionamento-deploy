@@ -19,6 +19,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\MonthlySubscriberController;
 use App\Http\Controllers\MonthlySubscriberAccessController;
+use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -47,7 +48,6 @@ Route::get('/login', function () {
 });
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/refresh', [AuthController::class, 'refresh'])->name('refresh');
 
 Route::get('/mensalista/login', [MonthlySubscriberAccessController::class, 'loginForm'])->name('monthly-access.login');
@@ -226,6 +226,7 @@ Route::middleware(['auth.cookie'])->group(function () {
             ->middleware('role:admin,financeiro,operador')
             ->name('get-vehicle-price');
 
+        Route::resource('users', UserManagementController::class)->except(['show'])->middleware('role:admin');
         Route::resource('accounting', AccountingController::class)->except(['show'])->middleware('role:admin,financeiro');
         Route::get('/auditoria', [ActivityLogController::class, 'index'])->middleware('role:admin,financeiro')->name('audit.index');
         Route::get('/auditoria/exportar/csv', [ActivityLogController::class, 'exportCsv'])->middleware('role:admin,financeiro')->name('audit.export.csv');

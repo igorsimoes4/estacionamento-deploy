@@ -43,10 +43,22 @@ class Settings extends Model
             'getnet_seller_id',
             'getnet_api_base_url',
             'boleto_due_days',
+            'ticket_print_enabled',
+            'ticket_printer_driver',
+            'ticket_printer_target',
+            'ticket_printer_port',
+            'ticket_printer_timeout',
+            'ticket_print_copies',
+            'ticket_line_width',
     ];
 
     protected $casts = [
         'boleto_due_days' => 'integer',
+        'ticket_print_enabled' => 'boolean',
+        'ticket_printer_port' => 'integer',
+        'ticket_printer_timeout' => 'integer',
+        'ticket_print_copies' => 'integer',
+        'ticket_line_width' => 'integer',
     ];
 
     use HasFactory;

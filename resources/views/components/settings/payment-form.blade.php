@@ -215,6 +215,90 @@
         </div>
     </div>
 
+    <hr>
+    <h5 class="mb-3">Impressora de Ticket (ESC/POS)</h5>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="form-group">
+                <input type="hidden" name="ticket_print_enabled" value="0">
+                <div class="form-check mt-4">
+                    <input class="form-check-input" type="checkbox" value="1" id="ticket_print_enabled"
+                        name="ticket_print_enabled"
+                        {{ old('ticket_print_enabled', $estacionamentos->ticket_print_enabled) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="ticket_print_enabled">
+                        Ativar impressao direta
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="ticket_printer_driver">Driver</label>
+                <select name="ticket_printer_driver" id="ticket_printer_driver"
+                    class="form-control @error('ticket_printer_driver') is-invalid @enderror">
+                    <option value="windows" {{ old('ticket_printer_driver', $estacionamentos->ticket_printer_driver) === 'windows' ? 'selected' : '' }}>Windows (compartilhada)</option>
+                    <option value="cups" {{ old('ticket_printer_driver', $estacionamentos->ticket_printer_driver) === 'cups' ? 'selected' : '' }}>CUPS (Linux)</option>
+                    <option value="network" {{ old('ticket_printer_driver', $estacionamentos->ticket_printer_driver) === 'network' ? 'selected' : '' }}>Rede TCP/IP</option>
+                    <option value="file" {{ old('ticket_printer_driver', $estacionamentos->ticket_printer_driver) === 'file' ? 'selected' : '' }}>Arquivo/Dispositivo</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="ticket_printer_target">Destino da impressora</label>
+                <input type="text" name="ticket_printer_target" id="ticket_printer_target"
+                    class="form-control @error('ticket_printer_target') is-invalid @enderror"
+                    placeholder="Ex: POS-58 / localhost:9100 / /dev/usb/lp0"
+                    value="{{ old('ticket_printer_target', $estacionamentos->ticket_printer_target) }}" />
+                <small class="text-muted">Windows/CUPS: nome da impressora. Rede: IP/host (porta separada abaixo).</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-2">
+            <div class="form-group">
+                <label for="ticket_printer_port">Porta (rede)</label>
+                <input type="number" min="1" max="65535" name="ticket_printer_port" id="ticket_printer_port"
+                    class="form-control @error('ticket_printer_port') is-invalid @enderror"
+                    value="{{ old('ticket_printer_port', $estacionamentos->ticket_printer_port ?: 9100) }}" />
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label for="ticket_printer_timeout">Timeout (s)</label>
+                <input type="number" min="1" max="60" name="ticket_printer_timeout" id="ticket_printer_timeout"
+                    class="form-control @error('ticket_printer_timeout') is-invalid @enderror"
+                    value="{{ old('ticket_printer_timeout', $estacionamentos->ticket_printer_timeout ?: 10) }}" />
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label for="ticket_print_copies">Copias</label>
+                <input type="number" min="1" max="5" name="ticket_print_copies" id="ticket_print_copies"
+                    class="form-control @error('ticket_print_copies') is-invalid @enderror"
+                    value="{{ old('ticket_print_copies', $estacionamentos->ticket_print_copies ?: 1) }}" />
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label for="ticket_line_width">Largura (chars)</label>
+                <input type="number" min="16" max="64" name="ticket_line_width" id="ticket_line_width"
+                    class="form-control @error('ticket_line_width') is-invalid @enderror"
+                    value="{{ old('ticket_line_width', $estacionamentos->ticket_line_width ?: 42) }}" />
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="alert alert-light border mt-4 mb-0 small">
+                Exemplo Windows: <code>POS-58</code> <br>
+                Exemplo Rede: <code>192.168.0.120</code> e porta <code>9100</code>.
+            </div>
+        </div>
+    </div>
+
     <div class="form-group">
         <div class="row">
             <div class="col-md-9"></div>
@@ -226,4 +310,3 @@
         </div>
     </div>
 </form>
-
